@@ -524,6 +524,7 @@
       }
     }
 
+    /* 渲染月日曆：將圖示統一更換為繁體中文「新」標籤 */
     function renderCalendar() {
       const year = calendarCurrentDate.getFullYear();
       const month = calendarCurrentDate.getMonth();
@@ -548,7 +549,7 @@
             const isNew = m.newIngredients && m.newIngredients.includes(ingName);
 
             if (isNew) {
-              return `<span class="bg-amber-300 text-amber-950 font-extrabold px-1 py-0.5 rounded shadow-sm text-[10px] inline-block my-0.5">🆕 ${escapeHtml(ingName)}</span>`;
+              return `<span class="bg-amber-300 text-amber-950 font-extrabold px-1 py-0.5 rounded shadow-sm text-[10px] inline-block my-0.5"><span class="bg-amber-500 text-white rounded px-0.5 py-0.2 mr-0.5 text-[9px]">新</span>${escapeHtml(ingName)}</span>`;
             } else {
               return `<span class="text-slate-700">${escapeHtml(ingName)}</span>`;
             }
@@ -671,13 +672,11 @@
       document.getElementById('pickerSearchInput').value = '';
     }
 
-    /* 點選食材：自動比對歷史紀錄判定是否為新食材 */
     function togglePickIngredient(name) {
       const idx = selectedMealIngredients.findIndex(i => i.name === name);
       if (idx >= 0) {
         selectedMealIngredients.splice(idx, 1);
       } else {
-        // 比對歷史餐點紀錄：若歷史紀錄中沒有出現過，預設自動設為新食材 (isNew: true)
         const isEverTried = appData.meals.some(m => 
           (m.ingredients || []).some(i => (typeof i === 'string' ? i : i.name) === name)
         );

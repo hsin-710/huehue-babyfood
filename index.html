@@ -9,7 +9,7 @@
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&display=swap');
     body { font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #f8fafc; }
     .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
@@ -358,7 +358,7 @@
           let statusBadge = '';
           if (status === 'like') statusBadge = '<span class="bg-rose-50 text-rose-700 border border-rose-200 text-[11px] font-bold px-2 py-0.5 rounded-lg">❤️ 喜歡</span>';
           else if (status === 'dislike') statusBadge = '<span class="bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-bold px-2 py-0.5 rounded-lg">🤢 討厭</span>';
-          else if (status === 'allergy') statusBadge = '<span class="bg-rose-500 text-white text-[10px] font-extrabold px-2 py-0.5 rounded shadow-sm">❌ 過敏警示</span>';
+          else if (status === 'allergy') statusBadge = '<span class="bg-rose-600 text-black border border-rose-800 text-[11px] font-black px-2 py-0.5 rounded shadow">❌ 過敏</span>';
 
           return `
             <div class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 w-full text-sm">
@@ -410,7 +410,7 @@
       }
     }
 
-    /* 渲染月日曆：有過敏食材時醒目標示❌紅底 */
+    /* 渲染月日曆：過敏食材改為亮紅背景 + 黑字粗體，底色強化 */
     function renderCalendar() {
       const year = calendarCurrentDate.getFullYear();
       const month = calendarCurrentDate.getMonth();
@@ -436,15 +436,15 @@
             const status = appData.foodStatus[ingName] || 'normal';
 
             if (status === 'allergy') {
-              return `<span class="bg-rose-600 text-white font-extrabold px-1.5 py-0.5 rounded shadow-sm text-[10px] inline-flex items-center my-0.5">❌ ${escapeHtml(ingName)}</span>`;
+              return `<span class="bg-rose-500 text-black font-black px-1.5 py-0.5 rounded shadow text-[10px] inline-flex items-center my-0.5 border border-rose-700">❌ ${escapeHtml(ingName)}</span>`;
             } else if (isNew) {
               return `<span class="bg-amber-100 text-amber-900 border border-amber-300 font-bold px-1.5 py-0.5 rounded text-[11px] inline-flex items-center my-0.5"><span class="bg-emerald-600 text-white rounded px-1 py-0.5 mr-1 text-[9px]">新</span>${escapeHtml(ingName)}</span>`;
             } else {
-              return `<span class="text-slate-700">${escapeHtml(ingName)}</span>`;
+              return `<span class="text-slate-800 font-medium">${escapeHtml(ingName)}</span>`;
             }
           }).join('、');
 
-          return `<div class="text-[11px] bg-slate-50 p-1.5 rounded-xl border border-slate-100 flex flex-wrap items-center gap-1"><span class="font-bold text-slate-500">${m.type}:</span> ${ingsHtml}</div>`;
+          return `<div class="text-[11px] bg-slate-100 p-1.5 rounded-xl border border-slate-200 flex flex-wrap items-center gap-1 shadow-2xs"><span class="font-bold text-slate-600">${m.type}:</span> ${ingsHtml}</div>`;
         }).join('');
 
         const isToday = dateStr === new Date().toISOString().split('T')[0];
@@ -501,7 +501,7 @@
                 <div class="text-[11px] ${isTried ? 'text-emerald-600 font-semibold' : 'text-slate-400'}">${isTried ? '✓ 已解鎖' : '未解鎖'}</div>
               </div>
             </div>
-            ${statusIcon ? `<span class="text-xs font-bold px-2 py-0.5 rounded-md ${status === 'allergy' ? 'bg-rose-500 text-white' : 'bg-slate-100 text-slate-700'}">${statusIcon}</span>` : ''}
+            ${statusIcon ? `<span class="text-xs font-black px-2 py-0.5 rounded-md ${status === 'allergy' ? 'bg-rose-500 text-black border border-rose-700' : 'bg-slate-100 text-slate-700'}">${statusIcon}</span>` : ''}
           </div>`;
       }).join('');
     }
@@ -622,7 +622,7 @@
               <button type="button" onclick="setFoodStatus('${escapeHtml(item.name)}', 'like')" class="px-2 py-1 rounded-lg border ${currentStatus === 'like' ? 'bg-rose-100 border-rose-400 text-rose-800 font-bold' : 'bg-slate-50 text-slate-600'}">❤️ 喜歡</button>
               <button type="button" onclick="setFoodStatus('${escapeHtml(item.name)}', 'normal')" class="px-2 py-1 rounded-lg border ${currentStatus === 'normal' ? 'bg-slate-200 border-slate-400 text-slate-800 font-bold' : 'bg-slate-50 text-slate-600'}">😐 普通</button>
               <button type="button" onclick="setFoodStatus('${escapeHtml(item.name)}', 'dislike')" class="px-2 py-1 rounded-lg border ${currentStatus === 'dislike' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 text-slate-600'}">🤢 討厭</button>
-              <button type="button" onclick="setFoodStatus('${escapeHtml(item.name)}', 'allergy')" class="px-2 py-1 rounded-lg border ${currentStatus === 'allergy' ? 'bg-rose-600 text-white font-bold' : 'bg-slate-50 text-rose-600 border-rose-200'}">❌ 過敏</button>
+              <button type="button" onclick="setFoodStatus('${escapeHtml(item.name)}', 'allergy')" class="px-2 py-1 rounded-lg border ${currentStatus === 'allergy' ? 'bg-rose-600 text-black font-extrabold border border-rose-800' : 'bg-slate-50 text-rose-600 border-rose-200'}">❌ 過敏</button>
             </div>
           </div>`;
       }).join('');

@@ -117,16 +117,16 @@
 
     <!-- 2. 按月視圖 -->
     <section id="viewCalendar" class="hidden space-y-3">
-      <div class="bg-white p-3 sm:p-5 rounded-2xl border border-slate-200 shadow-xs">
-        <div class="flex items-center justify-between mb-3">
+      <div class="bg-white p-2.5 sm:p-5 rounded-2xl border border-slate-200 shadow-xs overflow-x-auto custom-scrollbar">
+        <div class="flex items-center justify-between mb-3 min-w-[320px]">
           <button onclick="changeMonth(-1)" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 text-xs font-bold transition-all"><i class="fa-solid fa-chevron-left"></i> 上個月</button>
           <h2 id="calendarMonthTitle" class="text-base sm:text-xl font-extrabold text-slate-800">2026 年 8 月</h2>
           <button onclick="changeMonth(1)" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 text-xs font-bold transition-all">下個月 <i class="fa-solid fa-chevron-right"></i></button>
         </div>
-        <div class="grid grid-cols-7 gap-1 text-center font-bold text-slate-600 text-xs py-1.5 border-b border-slate-200 bg-slate-50/80 rounded-t-xl">
+        <div class="grid grid-cols-7 gap-1 text-center font-bold text-slate-600 text-xs py-1.5 border-b border-slate-200 bg-slate-50/80 rounded-t-xl min-w-[320px]">
           <div class="text-rose-600">日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div class="text-emerald-700">六</div>
         </div>
-        <div id="calendarGrid" class="grid grid-cols-7 gap-1 mt-1.5"></div>
+        <div id="calendarGrid" class="grid grid-cols-7 gap-1 mt-1.5 min-w-[320px] items-start"></div>
       </div>
     </section>
 
@@ -140,23 +140,23 @@
             <span class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full font-bold" id="allergyStatsText">❌ 過敏 0 種</span>
           </div>
         </div>
-        <div class="flex items-center gap-1 overflow-x-auto pb-0.5 custom-scrollbar text-xs font-medium">
-          <button onclick="filterLibraryCategory('all')" class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-bold whitespace-nowrap shadow-xs">全部食材</button>
-          <button onclick="filterLibraryCategory('穀物澱粉')" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🌾 穀物</button>
-          <button onclick="filterLibraryCategory('蔬菜菌菇')" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🥦 蔬菜</button>
-          <button onclick="filterLibraryCategory('水果')" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🍎 水果</button>
-          <button onclick="filterLibraryCategory('蛋豆魚肉乳')" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🥩 蛋白</button>
-          <button onclick="filterLibraryCategory('海藻其他')" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🌿 其他</button>
+        <!-- 食材庫分類：加入「✨ 已解鎖」快捷篩選按鈕 -->
+        <div id="libraryCategoryBar" class="flex items-center gap-1 overflow-x-auto pb-0.5 custom-scrollbar text-xs font-medium">
+          <button onclick="filterLibraryCategory('unlocked')" id="libCatBtn_unlocked" class="px-2.5 py-1 rounded-lg bg-amber-500 text-white font-bold whitespace-nowrap shadow-xs">✨ 已解鎖</button>
+          <button onclick="filterLibraryCategory('all')" id="libCatBtn_all" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">全部食材</button>
+          <button onclick="filterLibraryCategory('穀物澱粉')" id="libCatBtn_穀物澱粉" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🌾 穀物</button>
+          <button onclick="filterLibraryCategory('蔬菜菌菇')" id="libCatBtn_蔬菜菌菇" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🥦 蔬菜</button>
+          <button onclick="filterLibraryCategory('水果')" id="libCatBtn_水果" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🍎 水果</button>
+          <button onclick="filterLibraryCategory('蛋豆魚肉乳')" id="libCatBtn_蛋豆魚肉乳" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🥩 蛋白</button>
+          <button onclick="filterLibraryCategory('海藻其他')" id="libCatBtn_海藻其他" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🌿 其他</button>
         </div>
         <div class="relative">
           <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2 text-slate-400 text-[10px]"></i>
-          <input type="text" id="librarySearchInput" oninput="renderLibrary()" placeholder="搜尋食材名稱（找不到可直接點下方新增）..." class="w-full pl-7 pr-2.5 py-1 border border-slate-300 rounded-lg text-xs bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500">
+          <input type="text" id="librarySearchInput" oninput="renderLibrary()" placeholder="搜尋食材名稱..." class="w-full pl-7 pr-2.5 py-1 border border-slate-300 rounded-lg text-xs bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500">
         </div>
       </div>
 
-      <!-- 找不到食材時動態跳出的新增區塊 -->
       <div id="libraryNotFoundContainer"></div>
-
       <div id="libraryGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2"></div>
     </section>
 
@@ -354,7 +354,7 @@
     let appData = { syncCode: 'huehue', meals: [], foods: DEFAULT_FOOD_DATABASE, combos: DEFAULT_COMBOS, foodStatus: {} };
     let selectedMealIngredients = [];
     let activePickerCategory = 'combo';
-    let activeLibraryCategory = 'all';
+    let activeLibraryCategory = 'unlocked';
     let calendarCurrentDate = new Date();
 
     window.onload = function() {
@@ -558,7 +558,7 @@
       const earliestMap = getEarliestDateMap();
 
       for (let i = 0; i < firstDay; i++) {
-        grid.innerHTML += `<div class="bg-slate-50/40 rounded-xl min-h-[85px]"></div>`;
+        grid.innerHTML += `<div class="bg-slate-50/40 rounded-xl min-h-[75px]"></div>`;
       }
 
       for (let d = 1; d <= daysInMonth; d++) {
@@ -572,22 +572,22 @@
             const status = appData.foodStatus[ingName] || 'normal';
 
             if (status === 'allergy') {
-              return `<span class="bg-rose-500 text-black font-black px-1 py-0.2 rounded text-[8px] inline-flex items-center border border-rose-700">❌${escapeHtml(ingName)}</span>`;
+              return `<span class="bg-rose-500 text-black font-black px-1 py-0.2 rounded text-[8px] inline-flex items-center border border-rose-700 my-0.2">❌${escapeHtml(ingName)}</span>`;
             } else if (isFirstEverOccur) {
-              return `<span class="bg-amber-100 text-amber-900 border border-amber-300 font-bold px-1 py-0.2 rounded text-[9px] inline-flex items-center"><span class="bg-emerald-600 text-white rounded px-0.5 mr-0.5 text-[7px]">新</span>${escapeHtml(ingName)}</span>`;
+              return `<span class="bg-amber-100 text-amber-900 border border-amber-300 font-bold px-1 py-0.2 rounded text-[8px] inline-flex items-center my-0.2"><span class="bg-emerald-600 text-white rounded px-0.5 mr-0.5 text-[7px]">新</span>${escapeHtml(ingName)}</span>`;
             } else {
-              return `<span class="text-slate-800 font-medium text-[9px]">${escapeHtml(ingName)}</span>`;
+              return `<span class="text-slate-800 font-medium text-[8px] inline-block my-0.2">${escapeHtml(ingName)}</span>`;
             }
           }).join('、');
 
-          return `<div class="text-[9px] bg-slate-100 p-0.5 rounded border border-slate-200 flex flex-wrap items-center gap-0.5"><span class="font-bold text-slate-500">${m.type}:</span> ${ingsHtml}</div>`;
+          return `<div class="text-[8px] bg-slate-100 p-0.5 rounded border border-slate-200 flex flex-wrap items-center gap-0.5 leading-tight"><span class="font-bold text-slate-500">${m.type}:</span> ${ingsHtml}</div>`;
         }).join('');
 
         const isToday = dateStr === new Date().toISOString().split('T')[0];
         grid.innerHTML += `
-          <div onclick="jumpToDateFromCalendar('${dateStr}')" class="bg-white rounded-xl border ${isToday ? 'border-emerald-500 ring-2 ring-emerald-200' : 'border-slate-200'} p-1 min-h-[85px] cursor-pointer">
-            <div class="border-b border-slate-100 pb-0.5"><span class="text-[9px] font-bold ${isToday ? 'bg-emerald-600 text-white rounded-full w-3.5 h-3.5 flex items-center justify-center' : 'text-slate-700'}">${d}</span></div>
-            <div class="space-y-0.5 overflow-y-auto mt-0.5 max-h-16 custom-scrollbar">${mealsListHtml}</div>
+          <div onclick="jumpToDateFromCalendar('${dateStr}')" class="bg-white rounded-xl border ${isToday ? 'border-emerald-500 ring-2 ring-emerald-200' : 'border-slate-200'} p-1 min-h-[75px] h-auto flex flex-col justify-start cursor-pointer shadow-2xs">
+            <div class="border-b border-slate-100 pb-0.5 mb-1"><span class="text-[9px] font-bold ${isToday ? 'bg-emerald-600 text-white rounded-full w-3.5 h-3.5 flex items-center justify-center' : 'text-slate-700'}">${d}</span></div>
+            <div class="space-y-0.5 w-full">${mealsListHtml}</div>
           </div>`;
       }
     }
@@ -602,7 +602,7 @@
       switchView('daily');
     }
 
-    /* 渲染食材庫：增加「新增」提示與「修改編輯」按鈕 */
+    /* 渲染食材庫：支援「✨ 已解鎖」單獨檢視功能 */
     function renderLibrary() {
       const grid = document.getElementById('libraryGrid');
       const notFoundContainer = document.getElementById('libraryNotFoundContainer');
@@ -614,14 +614,33 @@
       let allergyCount = 0;
       Object.values(appData.foodStatus).forEach(s => { if (s === 'allergy') allergyCount++; });
 
+      // 更新按鈕選取高亮樣式
+      const categories = ['unlocked', 'all', '穀物澱粉', '蔬菜菌菇', '水果', '蛋豆魚肉乳', '海藻其他'];
+      categories.forEach(cat => {
+        const btn = document.getElementById('libCatBtn_' + cat);
+        if (btn) {
+          if (cat === activeLibraryCategory) {
+            btn.className = cat === 'unlocked' 
+              ? "px-2.5 py-1 rounded-lg bg-amber-500 text-white font-bold whitespace-nowrap shadow-xs" 
+              : "px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-bold whitespace-nowrap shadow-xs";
+          } else {
+            btn.className = "px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap";
+          }
+        }
+      });
+
       let list = appData.foods;
-      if (activeLibraryCategory !== 'all') list = list.filter(f => f.category === activeLibraryCategory);
+      if (activeLibraryCategory === 'unlocked') {
+        list = list.filter(f => triedIngredients.has(f.name));
+      } else if (activeLibraryCategory !== 'all') {
+        list = list.filter(f => f.category === activeLibraryCategory);
+      }
+
       if (searchKeyword) list = list.filter(f => f.name.toLowerCase().includes(searchKeyword));
 
       document.getElementById('unlockedStatsText').innerText = `解鎖 ${triedIngredients.size} / ${appData.foods.length} 種`;
       document.getElementById('allergyStatsText').innerText = `❌ 過敏 ${allergyCount} 種`;
 
-      // 搜尋找不到食材時跳出新增區塊
       if (searchKeyword && !appData.foods.some(f => f.name.toLowerCase() === searchKeyword)) {
         notFoundContainer.innerHTML = `
           <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center justify-between gap-2">
@@ -658,7 +677,6 @@
       }).join('');
     }
 
-    /* 帶有分類選單的食材新增邏輯 */
     function promptAddNewFoodWithCat(presetName = '') {
       const name = presetName || prompt('請輸入食材名稱：');
       if (!name || !name.trim()) return;
@@ -669,7 +687,6 @@
         return;
       }
 
-      const categoryOptions = ["穀物澱粉", "蔬菜菌菇", "水果", "蛋豆魚肉乳", "海藻其他"];
       const catChoice = prompt(`請選擇「${cleanName}」的分類編號：\n1. 🌾 穀物澱粉\n2. 🥦 蔬菜菌菇\n3. 🍎 水果類\n4. 🥩 蛋豆魚肉乳\n5. 🌿 海藻其他`, "3");
       
       let category = "水果";
@@ -694,7 +711,6 @@
       alert(`已成功新增「${cleanName}」至【${category}】！`);
     }
 
-    /* 開啟編輯食材彈窗 */
     function openFoodEditModal(foodName) {
       const food = appData.foods.find(f => f.name === foodName);
       if (!food) return;

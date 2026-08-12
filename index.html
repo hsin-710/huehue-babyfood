@@ -59,7 +59,7 @@
         </div>
       </div>
 
-      <!-- 視圖切換按鈕（統一名稱：按日 / 按月） -->
+      <!-- 視圖切換按鈕 -->
       <div class="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-medium">
         <button id="viewBtnDaily" onclick="switchView('daily')" class="px-3 sm:px-4 py-1 rounded-lg transition-all flex items-center gap-1 bg-white shadow-xs text-emerald-700 font-semibold">
           <i class="fa-solid text-[10px] fa-list-ul"></i> 按日
@@ -325,6 +325,21 @@
       initFirebaseListener();
     };
 
+    /* 計算每個食材在全站紀錄中最早出現的日期 */
+    function getEarliestDateMap() {
+      const map = {};
+      const sortedMeals = [...appData.meals].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+      sortedMeals.forEach(m => {
+        (m.ingredients || []).forEach(i => {
+          const ingName = typeof i === 'string' ? i : i.name;
+          if (!map[ingName]) {
+            map[ingName] = m.date;
+          }
+        });
+      });
+      return map;
+    }
+
     function initFirebaseListener() {
       if (!window.firebaseInitialized) {
         setTimeout(initFirebaseListener, 500);
@@ -397,6 +412,7 @@
       const container = document.getElementById('dailyCardsContainer');
       const targetDate = document.getElementById('dailyDateFilter').value;
       const todayStr = new Date().toISOString().split('T')[0];
+      const earliestMap = getEarliestDateMap();
 
       document.getElementById('btnJumpToToday').classList.toggle('hidden', targetDate === todayStr);
 
@@ -417,7 +433,7 @@
       dayMeals.forEach(meal => {
         let ingredientsChipsHtml = (meal.ingredients || []).map(item => {
           const ingName = typeof item === 'string' ? item : item.name;
-          const isNew = meal.newIngredients && meal.newIngredients.includes(ingName);
+          const isFirstEverOccur = earliestMap[ingName] === meal.date;
           const foodObj = appData.foods.find(f => f.name === ingName) || {};
           const status = appData.foodStatus[ingName] || 'normal';
 
@@ -430,7 +446,7 @@
             <div class="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs">
               <span>${foodObj.icon || '🥦'}</span>
               <span class="font-bold text-slate-800">${escapeHtml(ingName)}</span>
-              ${isNew ? '<span class="bg-amber-400 text-slate-900 font-extrabold text-[8px] px-1 rounded">新</span>' : ''}
+              ${isFirstEverOccur ? '<span class="bg-amber-400 text-slate-900 font-extrabold text-[8px] px-1 rounded">新嘗試</span>' : ''}
               ${statusTag}
             </div>`;
         }).join('');
@@ -467,7 +483,6 @@
       document.getElementById('viewCalendar').classList.add('hidden');
       document.getElementById('viewLibrary').classList.add('hidden');
 
-      // 更新按鈕選取樣式
       document.getElementById('viewBtnDaily').className = "px-3 sm:px-4 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900";
       document.getElementById('viewBtnCalendar').className = "px-3 sm:px-4 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900";
       document.getElementById('viewBtnLibrary').className = "px-3 sm:px-4 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900";
@@ -487,6 +502,7 @@
       }
     }
 
+    /* 渲染月日曆：全自動判斷食材「首次出現」才顯示「新」標籤 */
     function renderCalendar() {
       const year = calendarCurrentDate.getFullYear();
       const month = calendarCurrentDate.getMonth();
@@ -496,6 +512,8 @@
       const daysInMonth = new Date(year, month + 1, 0).getDate();
       const grid = document.getElementById('calendarGrid');
       grid.innerHTML = '';
+
+      const earliestMap = getEarliestDateMap();
 
       for (let i = 0; i < firstDay; i++) {
         grid.innerHTML += `<div class="bg-slate-50/40 rounded-xl min-h-[85px]"></div>`;
@@ -508,12 +526,12 @@
         let mealsListHtml = dayMeals.map(m => {
           const ingsHtml = (m.ingredients || []).map(i => {
             const ingName = typeof i === 'string' ? i : i.name;
-            const isNew = m.newIngredients && m.newIngredients.includes(ingName);
+            const isFirstEverOccur = earliestMap[ingName] === dateStr;
             const status = appData.foodStatus[ingName] || 'normal';
 
             if (status === 'allergy') {
               return `<span class="bg-rose-500 text-black font-black px-1 py-0.2 rounded text-[8px] inline-flex items-center border border-rose-700">❌${escapeHtml(ingName)}</span>`;
-            } else if (isNew) {
+            } else if (isFirstEverOccur) {
               return `<span class="bg-amber-100 text-amber-900 border border-amber-300 font-bold px-1 py-0.2 rounded text-[9px] inline-flex items-center"><span class="bg-emerald-600 text-white rounded px-0.5 mr-0.5 text-[7px]">新</span>${escapeHtml(ingName)}</span>`;
             } else {
               return `<span class="text-slate-800 font-medium text-[9px]">${escapeHtml(ingName)}</span>`;
@@ -603,7 +621,7 @@
 
         selectedMealIngredients = (mealToEdit.ingredients || []).map(item => {
           const ingName = typeof item === 'string' ? item : item.name;
-          return { name: ingName, isNew: !!(mealToEdit.newIngredients && mealToEdit.newIngredients.includes(ingName)) };
+          return { name: ingName };
         });
       } else {
         document.getElementById('modalHeaderLabel').innerText = '紀錄餐點食材';
@@ -674,8 +692,7 @@
       if (idx >= 0) {
         selectedMealIngredients.splice(idx, 1);
       } else {
-        const isEverTried = appData.meals.some(m => (m.ingredients || []).forEach(i => (typeof i === 'string' ? i : i.name) === name));
-        selectedMealIngredients.push({ name: name, isNew: !isEverTried });
+        selectedMealIngredients.push({ name: name });
       }
       renderSelectedIngredientsList();
       renderPickerChips();
@@ -691,7 +708,6 @@
           <div class="bg-white border border-slate-200 rounded-lg p-1.5 space-y-1 text-xs shadow-2xs">
             <div class="flex items-center justify-between">
               <span class="font-bold text-xs text-slate-800">${escapeHtml(item.name)}</span>
-              <button type="button" onclick="toggleIngredientNewFlag(${index})" class="px-1.5 py-0.2 rounded font-bold text-[9px] ${item.isNew ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-slate-100 text-slate-500'}">${item.isNew ? '✨ 新食材' : '+ 標為新食材'}</button>
             </div>
             <div class="flex items-center gap-0.5 pt-0.5 border-t border-slate-100 text-[10px]">
               <span class="text-slate-500 font-medium">試敏:</span>
@@ -712,11 +728,6 @@
       renderCalendar();
     }
 
-    function toggleIngredientNewFlag(index) {
-      selectedMealIngredients[index].isNew = !selectedMealIngredients[index].isNew;
-      renderSelectedIngredientsList();
-    }
-
     function handleMealSubmit(e) {
       e.preventDefault();
       if (selectedMealIngredients.length === 0) {
@@ -733,8 +744,7 @@
         weight: document.getElementById('mealWeight').value.trim(),
         texture: document.getElementById('mealTexture').value,
         notes: document.getElementById('mealNotes').value.trim(),
-        ingredients: selectedMealIngredients.map(i => ({ name: i.name })),
-        newIngredients: selectedMealIngredients.filter(i => i.isNew).map(i => i.name)
+        ingredients: selectedMealIngredients.map(i => ({ name: i.name }))
       };
 
       if (editingId) {

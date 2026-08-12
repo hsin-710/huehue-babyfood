@@ -356,9 +356,9 @@
           const status = appData.foodStatus[ingName] || 'normal';
 
           let statusBadge = '';
-          if (status === 'like') statusBadge = '<span class="text-xs">❤️ 喜歡</span>';
-          else if (status === 'dislike') statusBadge = '<span class="text-xs">🤢 討厭</span>';
-          else if (status === 'allergy') statusBadge = '<span class="bg-rose-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded shadow-sm">❌ 過敏警示</span>';
+          if (status === 'like') statusBadge = '<span class="bg-rose-50 text-rose-700 border border-rose-200 text-[11px] font-bold px-2 py-0.5 rounded-lg">❤️ 喜歡</span>';
+          else if (status === 'dislike') statusBadge = '<span class="bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-bold px-2 py-0.5 rounded-lg">🤢 討厭</span>';
+          else if (status === 'allergy') statusBadge = '<span class="bg-rose-500 text-white text-[10px] font-extrabold px-2 py-0.5 rounded shadow-sm">❌ 過敏警示</span>';
 
           return `
             <div class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 w-full text-sm">
@@ -627,6 +627,7 @@
       appData.foodStatus[foodName] = status;
       saveData();
       renderSelectedIngredientsList();
+      renderDailyCards();
     }
 
     function toggleIngredientNewFlag(index) {

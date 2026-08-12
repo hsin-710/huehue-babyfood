@@ -84,23 +84,18 @@
           <button onclick="shiftDailyDate(-1)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-all flex items-center gap-1">
             <i class="fa-solid fa-chevron-left text-[10px]"></i> 前一天
           </button>
-
           <input type="date" id="dailyDateFilter" onchange="renderDailyCards()" class="border border-slate-300 rounded-xl px-3 py-1.5 text-sm font-bold bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
-
           <button onclick="shiftDailyDate(1)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-all flex items-center gap-1">
             後一天 <i class="fa-solid fa-chevron-right text-[10px]"></i>
           </button>
-
           <button id="btnJumpToToday" onclick="resetDailyDateToToday()" class="hidden bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-300 px-3 py-1.5 rounded-xl font-extrabold text-xs transition-all flex items-center gap-1 shadow-sm">
             <i class="fa-solid fa-rotate-left"></i> 回今天
           </button>
         </div>
-
         <div class="text-xs text-slate-500 font-medium">
           💡 快捷導覽：點選左右箭頭即可快速切換前後日觀看紀錄
         </div>
       </div>
-
       <div id="dailyCardsContainer" class="space-y-4"></div>
     </section>
 
@@ -116,11 +111,9 @@
             下個月 <i class="fa-solid fa-chevron-right"></i>
           </button>
         </div>
-
         <div class="grid grid-cols-7 gap-2 text-center font-bold text-slate-600 text-sm py-3 border-b border-slate-200 bg-slate-50/80 rounded-t-xl">
           <div class="text-rose-600">週日</div><div>週一</div><div>週二</div><div>週三</div><div>週四</div><div>週五</div><div class="text-emerald-700">週六</div>
         </div>
-
         <div id="calendarGrid" class="grid grid-cols-7 gap-2 mt-2"></div>
       </div>
     </section>
@@ -134,10 +127,8 @@
           </h2>
           <div class="flex items-center gap-3">
             <span class="bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-bold" id="unlockedStatsText">解鎖 0 / 100+ 種</span>
-            <span class="bg-rose-100 text-rose-800 text-xs px-3 py-1 rounded-full font-bold" id="allergyStatsText">過敏 0 種</span>
           </div>
         </div>
-
         <div class="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar text-xs font-medium" id="libraryCategoryTabs">
           <button onclick="filterLibraryCategory('all')" class="lib-tab active px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold whitespace-nowrap shadow-sm">全部食材</button>
           <button onclick="filterLibraryCategory('穀物澱粉')" class="lib-tab px-4 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🌾 穀物澱粉</button>
@@ -146,13 +137,11 @@
           <button onclick="filterLibraryCategory('蛋豆魚肉乳')" class="lib-tab px-4 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🥩 蛋豆魚肉乳</button>
           <button onclick="filterLibraryCategory('海藻其他')" class="lib-tab px-4 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🌿 海藻其他</button>
         </div>
-
         <div class="relative">
           <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-sm"></i>
           <input type="text" id="librarySearchInput" oninput="renderLibrary()" placeholder="搜尋食材名稱（如：白米、高麗菜、鮭魚...）" class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-xl text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
         </div>
       </div>
-
       <div id="libraryGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"></div>
     </section>
 
@@ -524,7 +513,7 @@
       }
     }
 
-    /* 渲染月日曆：將圖示統一更換為繁體中文「新」標籤 */
+    /* 渲染日曆，這裡把圖案徹底改成 CSS 畫出的綠底黃字標籤 */
     function renderCalendar() {
       const year = calendarCurrentDate.getFullYear();
       const month = calendarCurrentDate.getMonth();
@@ -549,13 +538,13 @@
             const isNew = m.newIngredients && m.newIngredients.includes(ingName);
 
             if (isNew) {
-              return `<span class="bg-amber-300 text-amber-950 font-extrabold px-1 py-0.5 rounded shadow-sm text-[10px] inline-block my-0.5"><span class="bg-amber-500 text-white rounded px-0.5 py-0.2 mr-0.5 text-[9px]">新</span>${escapeHtml(ingName)}</span>`;
+              return `<span class="bg-amber-100 text-amber-900 border border-amber-300 font-bold px-1.5 py-0.5 rounded-lg shadow-sm text-[11px] inline-flex items-center my-0.5"><span class="bg-emerald-600 text-white rounded-[4px] px-1 py-0.5 mr-1 text-[9px] font-extrabold leading-none">新</span>${escapeHtml(ingName)}</span>`;
             } else {
               return `<span class="text-slate-700">${escapeHtml(ingName)}</span>`;
             }
           }).join('、');
 
-          return `<div class="text-[11px] bg-slate-50 p-1 rounded border border-slate-100 flex flex-wrap items-center gap-1">
+          return `<div class="text-[11px] bg-slate-50 p-1.5 rounded-xl border border-slate-100 flex flex-wrap items-center gap-1.5 shadow-sm">
             <span class="font-bold text-slate-500">${m.type}:</span> ${ingsHtml}
           </div>`;
         }).join('');
@@ -567,7 +556,7 @@
             <div class="flex items-center justify-between border-b border-slate-100 pb-1">
               <span class="text-xs font-bold ${isToday ? 'bg-emerald-600 text-white rounded-full w-5 h-5 flex items-center justify-center' : 'text-slate-700'}">${d}</span>
             </div>
-            <div class="space-y-1 overflow-y-auto flex-1">${mealsListHtml}</div>
+            <div class="space-y-1.5 overflow-y-auto flex-1 mt-1.5">${mealsListHtml}</div>
           </div>
         `;
       }
@@ -692,7 +681,7 @@
       container.innerHTML = selectedMealIngredients.map((item, index) => `
         <div class="bg-white border border-slate-200 rounded-xl p-2.5 flex items-center justify-between text-xs">
           <span class="font-bold text-slate-800">${escapeHtml(item.name)}</span>
-          <button type="button" onclick="toggleIngredientNewFlag(${index})" class="px-2.5 py-1 rounded-lg font-bold ${item.isNew ? 'bg-amber-400 text-slate-900 shadow-sm' : 'bg-slate-100 text-slate-500'}">
+          <button type="button" onclick="toggleIngredientNewFlag(${index})" class="px-2.5 py-1 rounded-lg font-bold ${item.isNew ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-sm' : 'bg-slate-100 text-slate-500'}">
             ${item.isNew ? '✨ 新食材' : '+ 標為新食材'}
           </button>
         </div>

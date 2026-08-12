@@ -14,7 +14,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
     import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
-    // 帶入您截圖中的真實 Firebase 金鑰
     const firebaseConfig = {
       apiKey: "AIzaSyAYPVSigJRiLJUkWPrgQtP3LjYTVtA1Pko",
       authDomain: "huehue-babyfood.firebaseapp.com",
@@ -26,15 +25,17 @@
       measurementId: "G-LT4J4F4Q73"
     };
 
-    // 初始化 Firebase
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    window.db = db;
-    window.dbRef = ref;
-    window.dbOnValue = onValue;
-    window.dbSet = set;
-    window.firebaseInitialized = true;
+    try {
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+      window.db = db;
+      window.dbRef = ref;
+      window.dbOnValue = onValue;
+      window.dbSet = set;
+      window.firebaseInitialized = true;
+    } catch (e) {
+      console.error("Firebase init failed:", e);
+    }
   </script>
 
   <style>
@@ -322,11 +323,14 @@
       renderLibrary();
       updateBadges();
 
-      setTimeout(initFirebaseListener, 1000);
+      initFirebaseListener();
     };
 
     function initFirebaseListener() {
-      if (!window.firebaseInitialized) return;
+      if (!window.firebaseInitialized) {
+        setTimeout(initFirebaseListener, 500);
+        return;
+      }
       const syncRef = window.dbRef(window.db, 'baby_food_' + appData.syncCode);
       
       window.dbOnValue(syncRef, (snapshot) => {
@@ -341,10 +345,13 @@
           renderCalendar();
           renderLibrary();
           updateBadges();
-          
-          document.getElementById('cloudStatusBadge').className = "bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded-md font-bold";
-          document.getElementById('cloudStatusBadge').innerText = "✓ 雲端已即時同步";
         }
+        document.getElementById('cloudStatusBadge').className = "bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded-md font-bold";
+        document.getElementById('cloudStatusBadge').innerText = "✓ 雲端已即時同步";
+      }, (error) => {
+        console.error("Firebase error:", error);
+        document.getElementById('cloudStatusBadge').className = "bg-rose-100 text-rose-800 text-[10px] px-2 py-0.5 rounded-md font-bold";
+        document.getElementById('cloudStatusBadge').innerText = "⚠️ 權限受限，請發布Rules";
       });
     }
 

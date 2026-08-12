@@ -8,6 +8,35 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+
+    // 帶入您截圖中的真實 Firebase 金鑰
+    const firebaseConfig = {
+      apiKey: "AIzaSyAYPVSigJRiLJUkWPrgQtP3LjYTVtA1Pko",
+      authDomain: "huehue-babyfood.firebaseapp.com",
+      databaseURL: "https://huehue-babyfood-default-rtdb.firebaseio.com",
+      projectId: "huehue-babyfood",
+      storageBucket: "huehue-babyfood.firebasestorage.app",
+      messagingSenderId: "145918754503",
+      appId: "1:145918754503:web:14cc2f0c5df4cfdb9d88e2",
+      measurementId: "G-LT4J4F4Q73"
+    };
+
+    // 初始化 Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    window.db = db;
+    window.dbRef = ref;
+    window.dbOnValue = onValue;
+    window.dbSet = set;
+    window.firebaseInitialized = true;
+  </script>
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&display=swap');
     body { font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #f8fafc; }
@@ -25,7 +54,7 @@
         <span class="text-3xl">👶</span>
         <div>
           <h1 class="font-bold text-xl text-slate-800 leading-tight">Hue Hue 寶貝試敏日誌</h1>
-          <p class="text-xs text-slate-500">雲端同步 ‧ 全家共享高清版</p>
+          <p class="text-xs text-slate-500">雲端即時同步 ‧ 全家共享版</p>
         </div>
       </div>
 
@@ -51,6 +80,7 @@
             <i class="fa-solid fa-cloud"></i> 家庭同步碼: <span id="syncCodeDisplay" class="font-bold">huehue</span>
           </span>
           <button onclick="promptChangeSyncCode()" class="text-slate-500 hover:text-slate-800 underline">修改同步碼</button>
+          <span id="cloudStatusBadge" class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-md font-bold">雲端連線中...</span>
         </div>
 
         <div class="flex items-center gap-3">
@@ -291,7 +321,32 @@
       renderPickerChips();
       renderLibrary();
       updateBadges();
+
+      setTimeout(initFirebaseListener, 1000);
     };
+
+    function initFirebaseListener() {
+      if (!window.firebaseInitialized) return;
+      const syncRef = window.dbRef(window.db, 'baby_food_' + appData.syncCode);
+      
+      window.dbOnValue(syncRef, (snapshot) => {
+        const val = snapshot.val();
+        if (val) {
+          appData.meals = val.meals || [];
+          appData.foodStatus = val.foodStatus || {};
+          if (val.foods && val.foods.length >= 20) appData.foods = val.foods;
+          localStorage.setItem('baby_food_app_data', JSON.stringify(appData));
+          
+          renderDailyCards();
+          renderCalendar();
+          renderLibrary();
+          updateBadges();
+          
+          document.getElementById('cloudStatusBadge').className = "bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded-md font-bold";
+          document.getElementById('cloudStatusBadge').innerText = "✓ 雲端已即時同步";
+        }
+      });
+    }
 
     function loadLocalData() {
       const saved = localStorage.getItem('baby_food_app_data');
@@ -310,6 +365,11 @@
     function saveData() {
       localStorage.setItem('baby_food_app_data', JSON.stringify(appData));
       updateBadges();
+
+      if (window.firebaseInitialized) {
+        const syncRef = window.dbRef(window.db, 'baby_food_' + appData.syncCode);
+        window.dbSet(syncRef, appData);
+      }
     }
 
     function shiftDailyDate(offsetDays) {
@@ -410,7 +470,6 @@
       }
     }
 
-    /* 渲染月日曆：過敏食材改為亮紅背景 + 黑字粗體，底色強化 */
     function renderCalendar() {
       const year = calendarCurrentDate.getFullYear();
       const month = calendarCurrentDate.getMonth();
@@ -696,6 +755,7 @@
         appData.syncCode = code.trim();
         document.getElementById('syncCodeDisplay').innerText = appData.syncCode;
         saveData();
+        initFirebaseListener();
       }
     }
 

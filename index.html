@@ -150,15 +150,48 @@
         </div>
         <div class="relative">
           <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2 text-slate-400 text-[10px]"></i>
-          <input type="text" id="librarySearchInput" oninput="renderLibrary()" placeholder="搜尋食材名稱..." class="w-full pl-7 pr-2.5 py-1 border border-slate-300 rounded-lg text-xs bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500">
+          <input type="text" id="librarySearchInput" oninput="renderLibrary()" placeholder="搜尋食材名稱（找不到可直接點下方新增）..." class="w-full pl-7 pr-2.5 py-1 border border-slate-300 rounded-lg text-xs bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500">
         </div>
       </div>
+
+      <!-- 找不到食材時動態跳出的新增區塊 -->
+      <div id="libraryNotFoundContainer"></div>
+
       <div id="libraryGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2"></div>
     </section>
 
   </main>
 
-  <!-- 彈窗 Modal -->
+  <!-- 食材分類修改彈窗 -->
+  <div id="foodEditModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-4 space-y-3 shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between border-b pb-2">
+        <h3 class="font-bold text-slate-800 text-sm">修改食材資訊</h3>
+        <button onclick="closeFoodEditModal()" class="text-slate-400 hover:text-slate-600 text-sm">✕</button>
+      </div>
+      <input type="hidden" id="editingFoodOldName" value="">
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">食材名稱</label>
+        <input type="text" id="editingFoodName" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs bg-slate-50 focus:bg-white focus:ring-1 focus:ring-emerald-500">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">食材分類</label>
+        <select id="editingFoodCategory" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs bg-slate-50 focus:bg-white focus:ring-1 focus:ring-emerald-500">
+          <option value="穀物澱粉">🌾 穀物澱粉</option>
+          <option value="蔬菜菌菇">🥦 蔬菜菌菇</option>
+          <option value="水果">🍎 水果類</option>
+          <option value="蛋豆魚肉乳">🥩 蛋豆魚肉乳</option>
+          <option value="海藻其他">🌿 海藻其他</option>
+        </select>
+      </div>
+      <div class="flex gap-2 pt-2 border-t border-slate-100">
+        <button type="button" onclick="closeFoodEditModal()" class="flex-1 bg-slate-100 text-slate-600 py-2 rounded-xl font-bold hover:bg-slate-200 text-xs">取消</button>
+        <button type="button" onclick="saveFoodEdit()" class="flex-1 bg-emerald-600 text-white py-2 rounded-xl font-bold hover:bg-emerald-700 text-xs shadow-xs">儲存修改</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 餐點彈窗 Modal -->
   <div id="mealModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-2.5 hidden">
     <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[95vh] overflow-y-auto custom-scrollbar shadow-2xl border border-slate-100">
       
@@ -569,8 +602,10 @@
       switchView('daily');
     }
 
+    /* 渲染食材庫：增加「新增」提示與「修改編輯」按鈕 */
     function renderLibrary() {
       const grid = document.getElementById('libraryGrid');
+      const notFoundContainer = document.getElementById('libraryNotFoundContainer');
       const searchKeyword = document.getElementById('librarySearchInput').value.trim().toLowerCase();
 
       const triedIngredients = new Set();
@@ -585,6 +620,17 @@
 
       document.getElementById('unlockedStatsText').innerText = `解鎖 ${triedIngredients.size} / ${appData.foods.length} 種`;
       document.getElementById('allergyStatsText').innerText = `❌ 過敏 ${allergyCount} 種`;
+
+      // 搜尋找不到食材時跳出新增區塊
+      if (searchKeyword && !appData.foods.some(f => f.name.toLowerCase() === searchKeyword)) {
+        notFoundContainer.innerHTML = `
+          <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center justify-between gap-2">
+            <span class="text-xs text-emerald-900 font-bold">找不到「${escapeHtml(searchKeyword)}」？</span>
+            <button onclick="promptAddNewFoodWithCat('${escapeHtml(searchKeyword)}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-xs">+ 新增「${escapeHtml(searchKeyword)}」至食材庫</button>
+          </div>`;
+      } else {
+        notFoundContainer.innerHTML = '';
+      }
 
       grid.innerHTML = list.map(food => {
         const isTried = triedIngredients.has(food.name);
@@ -604,9 +650,91 @@
                 <div class="text-[9px] ${isTried ? 'text-emerald-600 font-semibold' : 'text-slate-400'}">${isTried ? '✓ 解鎖' : '未解鎖'}</div>
               </div>
             </div>
-            ${statusIcon ? `<span class="text-[9px] font-black px-1 py-0.2 rounded ${status === 'allergy' ? 'bg-rose-500 text-black border border-rose-700' : 'bg-slate-100 text-slate-700'}">${statusIcon}</span>` : ''}
+            <div class="flex items-center gap-1">
+              ${statusIcon ? `<span class="text-[9px] font-black px-1 py-0.2 rounded ${status === 'allergy' ? 'bg-rose-500 text-black border border-rose-700' : 'bg-slate-100 text-slate-700'}">${statusIcon}</span>` : ''}
+              <button onclick="openFoodEditModal('${escapeHtml(food.name)}')" class="text-slate-400 hover:text-slate-600 p-1 text-[10px]" title="修改食材與分類">✏️</button>
+            </div>
           </div>`;
       }).join('');
+    }
+
+    /* 帶有分類選單的食材新增邏輯 */
+    function promptAddNewFoodWithCat(presetName = '') {
+      const name = presetName || prompt('請輸入食材名稱：');
+      if (!name || !name.trim()) return;
+      const cleanName = name.trim();
+
+      if (appData.foods.some(f => f.name === cleanName)) {
+        alert('該食材已經存在於食材庫中囉！');
+        return;
+      }
+
+      const categoryOptions = ["穀物澱粉", "蔬菜菌菇", "水果", "蛋豆魚肉乳", "海藻其他"];
+      const catChoice = prompt(`請選擇「${cleanName}」的分類編號：\n1. 🌾 穀物澱粉\n2. 🥦 蔬菜菌菇\n3. 🍎 水果類\n4. 🥩 蛋豆魚肉乳\n5. 🌿 海藻其他`, "3");
+      
+      let category = "水果";
+      if (catChoice === "1") category = "穀物澱粉";
+      else if (catChoice === "2") category = "蔬菜菌菇";
+      else if (catChoice === "3") category = "水果";
+      else if (catChoice === "4") category = "蛋豆魚肉乳";
+      else if (catChoice === "5") category = "海藻其他";
+
+      let icon = "🥦";
+      if (category === "穀物澱粉") icon = "🌾";
+      else if (category === "蔬菜菌菇") icon = "🥦";
+      else if (category === "水果") icon = "🍎";
+      else if (category === "蛋豆魚肉乳") icon = "🥩";
+      else if (category === "海藻其他") icon = "🌿";
+
+      appData.foods.push({ name: cleanName, category: category, icon: icon });
+      saveData();
+      
+      document.getElementById('librarySearchInput').value = '';
+      renderLibrary();
+      alert(`已成功新增「${cleanName}」至【${category}】！`);
+    }
+
+    /* 開啟編輯食材彈窗 */
+    function openFoodEditModal(foodName) {
+      const food = appData.foods.find(f => f.name === foodName);
+      if (!food) return;
+      document.getElementById('editingFoodOldName').value = food.name;
+      document.getElementById('editingFoodName').value = food.name;
+      document.getElementById('editingFoodCategory').value = food.category || '水果';
+      document.getElementById('foodEditModal').classList.remove('hidden');
+    }
+
+    function closeFoodEditModal() {
+      document.getElementById('foodEditModal').classList.add('hidden');
+    }
+
+    function saveFoodEdit() {
+      const oldName = document.getElementById('editingFoodOldName').value;
+      const newName = document.getElementById('editingFoodName').value.trim();
+      const newCat = document.getElementById('editingFoodCategory').value;
+
+      if (!newName) {
+        alert('食材名稱不能為空！');
+        return;
+      }
+
+      const food = appData.foods.find(f => f.name === oldName);
+      if (food) {
+        food.name = newName;
+        food.category = newCat;
+        
+        if (newCat === "穀物澱粉") food.icon = "🌾";
+        else if (newCat === "蔬菜菌菇") food.icon = "🥦";
+        else if (newCat === "水果") food.icon = "🍎";
+        else if (newCat === "蛋豆魚肉乳") food.icon = "🥩";
+        else if (newCat === "海藻其他") food.icon = "🌿";
+
+        saveData();
+        closeFoodEditModal();
+        renderLibrary();
+        renderDailyCards();
+        renderCalendar();
+      }
     }
 
     function filterLibraryCategory(cat) {
@@ -688,7 +816,7 @@
         else filtered = filtered.filter(f => f.category === activePickerCategory);
 
         if (searchKey && !appData.foods.some(f => f.name.toLowerCase() === searchKeyLower)) {
-          html += `<button type="button" onclick="addCustomFood('${escapeHtml(searchKey)}')" class="w-full mb-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700">+ 新增「${escapeHtml(searchKey)}」至食材庫並選取</button>`;
+          html += `<button type="button" onclick="promptAddNewFoodWithCat('${escapeHtml(searchKey)}')" class="w-full mb-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700">+ 新增「${escapeHtml(searchKey)}」至食材庫並選取</button>`;
         }
 
         html += filtered.map(food => {
@@ -739,17 +867,6 @@
         saveData();
         renderPickerChips();
       }
-    }
-
-    function addCustomFood(name) {
-      if (!name) return;
-      if (!appData.foods.some(f => f.name === name)) {
-        appData.foods.push({ name: name, category: '海藻其他', icon: '🍲' });
-      }
-      saveData();
-      togglePickIngredient(name);
-      document.getElementById('pickerSearchInput').value = '';
-      renderPickerChips();
     }
 
     function togglePickIngredient(name) {

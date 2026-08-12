@@ -221,7 +221,7 @@
 
         <div class="bg-emerald-50/60 p-4 rounded-2xl border border-emerald-100 space-y-2">
           <div class="text-xs font-bold text-emerald-900 flex items-center justify-between">
-            <span>已選擇食材（「新」食材標籤由系統自動比對）：</span>
+            <span>已選擇食材（系統已自動比對歷史紀錄）：</span>
             <span id="selectedIngredientsCount" class="text-emerald-700 font-semibold">0 項</span>
           </div>
           <div id="selectedIngredientsList" class="space-y-2 min-h-[40px]"></div>
@@ -256,7 +256,6 @@
 
   <!-- JAVASCRIPT LOGIC -->
   <script>
-    // 包含 100+ 種常見寶寶副食品食材資料庫
     const DEFAULT_FOOD_DATABASE = [
       // 🌾 穀物澱粉 (20項)
       { name: '白米', category: '穀物澱粉', icon: '🍚' },
@@ -410,7 +409,6 @@
           const parsed = JSON.parse(saved);
           if (parsed.syncCode) appData.syncCode = parsed.syncCode;
           if (parsed.meals) appData.meals = parsed.meals;
-          // 如果原本的食材少於 50 種，自動載入百項最新完整庫
           if (parsed.foods && parsed.foods.length >= 50) {
             appData.foods = parsed.foods;
           } else {
@@ -684,10 +682,19 @@
       document.getElementById('pickerSearchInput').value = '';
     }
 
+    /* 點選食材：自動比對歷史紀錄判定是否為新食材 */
     function togglePickIngredient(name) {
       const idx = selectedMealIngredients.findIndex(i => i.name === name);
-      if (idx >= 0) selectedMealIngredients.splice(idx, 1);
-      else selectedMealIngredients.push({ name: name, isNew: false });
+      if (idx >= 0) {
+        selectedMealIngredients.splice(idx, 1);
+      } else {
+        // 檢查該食材是否曾經出現在歷史餐點中
+        const isEverTried = appData.meals.some(m => 
+          (m.ingredients || []).some(i => (typeof i === 'string' ? i : i.name) === name)
+        );
+        // 如果從未食用過，預設自動標記為新食材 (isNew: true)
+        selectedMealIngredients.push({ name: name, isNew: !isEverTried });
+      }
       renderSelectedIngredientsList();
       renderPickerChips();
     }
@@ -699,7 +706,7 @@
         <div class="bg-white border border-slate-200 rounded-xl p-2.5 flex items-center justify-between text-xs">
           <span class="font-bold text-slate-800">${escapeHtml(item.name)}</span>
           <button type="button" onclick="toggleIngredientNewFlag(${index})" class="px-2.5 py-1 rounded-lg font-bold ${item.isNew ? 'bg-amber-400 text-slate-900' : 'bg-slate-100 text-slate-500'}">
-            ${item.isNew ? '新食材' : '+ 標為新食材'}
+            ${item.isNew ? '新食材（點擊可取消）' : '+ 標為新食材'}
           </button>
         </div>
       `).join('');

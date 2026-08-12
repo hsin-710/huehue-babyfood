@@ -193,7 +193,7 @@
           <label class="block text-xs font-bold text-slate-700 mb-1.5">選擇本次食用食材 (可跨類別搜尋)</label>
           <div class="relative mb-2">
             <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-2.5 text-slate-400 text-xs"></i>
-            <input type="text" id="pickerSearchInput" oninput="renderPickerChips()" placeholder="🔍 輸入關鍵字全站搜尋（例：火龍果、鮭魚...）" class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500">
+            <input type="text" id="pickerSearchInput" oninput="renderPickerChips()" placeholder="🔍 輸入關鍵字全站搜尋（找不到可直接新增...）" class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500">
           </div>
 
           <div class="flex gap-1.5 overflow-x-auto pb-1 mb-2 custom-scrollbar text-xs">
@@ -513,7 +513,6 @@
       }
     }
 
-    /* 渲染日曆，這裡把圖案徹底改成 CSS 畫出的綠底黃字標籤 */
     function renderCalendar() {
       const year = calendarCurrentDate.getFullYear();
       const month = calendarCurrentDate.getMonth();
@@ -625,40 +624,59 @@
       renderPickerChips();
     }
 
+    /* 渲染食材選擇卡片：若全站搜尋不到，顯示一鍵新增按鈕 */
     function renderPickerChips() {
       const container = document.getElementById('pickerChipsContainer');
-      const searchKey = document.getElementById('pickerSearchInput').value.trim().toLowerCase();
+      const searchKey = document.getElementById('pickerSearchInput').value.trim();
+      const searchKeyLower = searchKey.toLowerCase();
       const triedSet = new Set();
       appData.meals.forEach(m => (m.ingredients || []).forEach(i => triedSet.add(typeof i === 'string' ? i : i.name)));
 
       let filtered = appData.foods;
-      if (searchKey) filtered = filtered.filter(f => f.name.toLowerCase().includes(searchKey));
-      else if (activePickerCategory === 'unlocked') filtered = filtered.filter(f => triedSet.has(f.name));
-      else filtered = filtered.filter(f => f.category === activePickerCategory);
-
-      if (filtered.length === 0 && searchKey) {
-        container.innerHTML = `<button type="button" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-800" onclick="addCustomFood('${escapeHtml(searchKey)}')">+ 新增「${escapeHtml(searchKey)}」至食材庫</button>`;
-        return;
+      if (searchKey) {
+        filtered = filtered.filter(f => f.name.toLowerCase().includes(searchKeyLower));
+      } else if (activePickerCategory === 'unlocked') {
+        filtered = filtered.filter(f => triedSet.has(f.name));
+      } else {
+        filtered = filtered.filter(f => f.category === activePickerCategory);
       }
 
-      container.innerHTML = filtered.map(food => {
-        const isSelected = selectedMealIngredients.some(i => i.name === food.name);
-        return `
-          <button type="button" onclick="togglePickIngredient('${escapeHtml(food.name)}')" class="px-3 py-1.5 rounded-xl text-xs font-medium border flex items-center gap-1.5 ${isSelected ? 'bg-emerald-600 text-white font-bold shadow-sm' : 'bg-white text-slate-700 hover:bg-slate-100'}">
-            <span>${food.icon || '🥦'}</span>
-            <span>${escapeHtml(food.name)}</span>
+      let html = '';
+      
+      // 若有搜尋關鍵字，且食材庫完全沒有精確符合的名稱，優先在頂部顯示「新增食材」按鈕
+      if (searchKey && !appData.foods.some(f => f.name.toLowerCase() === searchKeyLower)) {
+        html += `
+          <button type="button" onclick="addCustomFood('${escapeHtml(searchKey)}')" class="w-full mb-2 px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 flex items-center justify-center gap-1.5 transition-all">
+            <i class="fa-solid fa-plus"></i> 新增「${escapeHtml(searchKey)}」至食材庫並選取
           </button>
         `;
-      }).join('');
+      }
+
+      if (filtered.length > 0) {
+        html += filtered.map(food => {
+          const isSelected = selectedMealIngredients.some(i => i.name === food.name);
+          return `
+            <button type="button" onclick="togglePickIngredient('${escapeHtml(food.name)}')" class="px-3 py-1.5 rounded-xl text-xs font-medium border flex items-center gap-1.5 ${isSelected ? 'bg-emerald-600 text-white font-bold shadow-sm' : 'bg-white text-slate-700 hover:bg-slate-100'}">
+              <span>${food.icon || '🥦'}</span>
+              <span>${escapeHtml(food.name)}</span>
+            </button>
+          `;
+        }).join('');
+      }
+
+      container.innerHTML = html;
     }
 
+    /* 手動新增自訂食材並自動選取 */
     function addCustomFood(name) {
+      if (!name) return;
       if (!appData.foods.some(f => f.name === name)) {
         appData.foods.push({ name: name, category: '海藻其他', icon: '🍲' });
       }
       saveData();
       togglePickIngredient(name);
       document.getElementById('pickerSearchInput').value = '';
+      renderPickerChips();
     }
 
     function togglePickIngredient(name) {

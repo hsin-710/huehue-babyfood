@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Hue Hue 寶貝副食品萬年曆 & 試敏追蹤器</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -41,52 +41,52 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&display=swap');
     body { font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #f8fafc; }
-    .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
   </style>
 </head>
-<body class="text-slate-800 antialiased min-h-screen flex flex-col pb-12">
+<body class="text-slate-800 antialiased min-h-screen flex flex-col pb-8">
 
   <!-- 頂部導覽列 -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 flex items-center justify-between flex-wrap gap-2">
-      <div class="flex items-center gap-2">
-        <span class="text-2xl sm:text-3xl">👶</span>
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+    <div class="max-w-7xl mx-auto px-2.5 sm:px-6 py-2 flex items-center justify-between flex-wrap gap-1.5">
+      <div class="flex items-center gap-1.5">
+        <span class="text-xl sm:text-2xl">👶</span>
         <div>
-          <h1 class="font-bold text-lg sm:text-xl text-slate-800 leading-tight">Hue Hue 寶貝試敏日誌</h1>
-          <p class="text-[10px] sm:text-xs text-slate-500">雲端即時同步 ‧ 全家共享版</p>
+          <h1 class="font-bold text-base sm:text-lg text-slate-800 leading-tight">Hue Hue 試敏日誌</h1>
+          <p class="text-[9px] sm:text-xs text-slate-500">雲端同步 ‧ 全家共享版</p>
         </div>
       </div>
 
       <!-- 視圖切換按鈕 -->
-      <div class="flex items-center bg-slate-100 p-1 rounded-xl text-xs sm:text-sm font-medium">
-        <button id="viewBtnDaily" onclick="switchView('daily')" class="px-3 sm:px-4 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-white shadow-sm text-emerald-700 font-semibold">
-          <i class="fa-solid font-bold fa-list-ul"></i> 按日卡片
+      <div class="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-medium">
+        <button id="viewBtnDaily" onclick="switchView('daily')" class="px-2.5 sm:px-4 py-1 rounded-lg transition-all flex items-center gap-1 bg-white shadow-xs text-emerald-700 font-semibold">
+          <i class="fa-solid text-[10px] fa-list-ul"></i> 按日卡片
         </button>
-        <button id="viewBtnCalendar" onclick="switchView('calendar')" class="px-3 sm:px-4 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-slate-600 hover:text-slate-900">
-          <i class="fa-regular fa-calendar-days"></i> 按月日曆
+        <button id="viewBtnCalendar" onclick="switchView('calendar')" class="px-2.5 sm:px-4 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900">
+          <i class="fa-regular text-[10px] fa-calendar-days"></i> 月日曆
         </button>
-        <button id="viewBtnLibrary" onclick="switchView('library')" class="px-3 sm:px-4 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-slate-600 hover:text-slate-900">
-          <i class="fa-solid fa-carrot"></i> 食材庫 <span id="libraryCountBadge" class="bg-emerald-100 text-emerald-800 text-[10px] px-1.5 py-0.5 rounded-full font-bold">0</span>
+        <button id="viewBtnLibrary" onclick="switchView('library')" class="px-2.5 sm:px-4 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900">
+          <i class="fa-solid text-[10px] fa-carrot"></i> 食材庫 <span id="libraryCountBadge" class="bg-emerald-100 text-emerald-800 text-[9px] px-1.5 py-0.2 rounded-full font-bold">0</span>
         </button>
       </div>
     </div>
 
     <!-- 雲端同步與工具列 -->
-    <div class="bg-slate-50 border-t border-slate-100 px-3 sm:px-6 py-2">
-      <div class="max-w-7xl mx-auto flex items-center justify-between text-xs text-slate-600 flex-wrap gap-2">
+    <div class="bg-slate-50 border-t border-slate-100 px-2.5 sm:px-6 py-1.5">
+      <div class="max-w-7xl mx-auto flex items-center justify-between text-xs text-slate-600 flex-wrap gap-1.5">
         <div class="flex items-center gap-1.5">
-          <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-lg border border-emerald-200 font-semibold text-[11px]">
-            <i class="fa-solid fa-cloud"></i> 同步碼: <span id="syncCodeDisplay" class="font-bold">huehue</span>
+          <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-lg border border-emerald-200 font-semibold text-[10px]">
+            <i class="fa-solid fa-cloud text-[9px]"></i> 同步碼: <span id="syncCodeDisplay" class="font-bold">huehue</span>
           </span>
-          <button onclick="promptChangeSyncCode()" class="text-slate-500 hover:text-slate-800 underline text-[11px]">修改</button>
-          <span id="cloudStatusBadge" class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-md font-bold">雲端連線中...</span>
+          <button onclick="promptChangeSyncCode()" class="text-slate-500 hover:text-slate-800 underline text-[10px]">修改</button>
+          <span id="cloudStatusBadge" class="bg-amber-100 text-amber-800 text-[9px] px-1.5 py-0.5 rounded font-bold">連線中...</span>
         </div>
 
-        <div class="flex items-center gap-2">
-          <button onclick="openMealModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded-xl font-bold shadow-sm transition-all flex items-center gap-1 text-xs">
-            <i class="fa-solid fa-plus text-xs"></i> 新增餐點
+        <div class="flex items-center gap-1.5">
+          <button onclick="openMealModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-xl font-bold shadow-xs transition-all flex items-center gap-1 text-xs">
+            <i class="fa-solid fa-plus text-[10px]"></i> 新增餐點
           </button>
         </div>
       </div>
@@ -94,94 +94,94 @@
   </header>
 
   <!-- 主要內容區 -->
-  <main class="max-w-7xl mx-auto px-3 sm:px-6 pt-4 flex-1 w-full">
+  <main class="max-w-7xl mx-auto px-2.5 sm:px-6 pt-2.5 flex-1 w-full">
 
-    <!-- 1. 按日卡片視圖 (緊湊式手機優化版) -->
-    <section id="viewDaily" class="space-y-3">
-      <div class="flex items-center justify-between bg-white px-3 py-2.5 rounded-2xl border border-slate-200 shadow-sm flex-wrap gap-2">
+    <!-- 1. 按日卡片視圖 (極致手機直螢幕優化版) -->
+    <section id="viewDaily" class="space-y-2.5">
+      <div class="flex items-center justify-between bg-white px-3 py-2 rounded-2xl border border-slate-200 shadow-xs flex-wrap gap-1.5">
         <div class="flex items-center gap-1.5 flex-wrap">
-          <button onclick="shiftDailyDate(-1)" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-all flex items-center gap-1">
-            <i class="fa-solid fa-chevron-left text-[9px]"></i> 前一天
+          <button onclick="shiftDailyDate(-1)" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold text-xs transition-all flex items-center gap-1">
+            <i class="fa-solid fa-chevron-left text-[8px]"></i> 前一天
           </button>
-          <input type="date" id="dailyDateFilter" onchange="renderDailyCards()" class="border border-slate-300 rounded-xl px-2.5 py-1 text-xs sm:text-sm font-bold bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
-          <button onclick="shiftDailyDate(1)" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-all flex items-center gap-1">
-            後一天 <i class="fa-solid fa-chevron-right text-[9px]"></i>
+          <input type="date" id="dailyDateFilter" onchange="renderDailyCards()" class="border border-slate-300 rounded-lg px-2 py-0.5 text-xs font-bold bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500">
+          <button onclick="shiftDailyDate(1)" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold text-xs transition-all flex items-center gap-1">
+            後一天 <i class="fa-solid fa-chevron-right text-[8px]"></i>
           </button>
-          <button id="btnJumpToToday" onclick="resetDailyDateToToday()" class="hidden bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-300 px-2.5 py-1.5 rounded-xl font-extrabold text-xs transition-all flex items-center gap-1 shadow-sm">
-            <i class="fa-solid fa-rotate-left"></i> 今日
+          <button id="btnJumpToToday" onclick="resetDailyDateToToday()" class="hidden bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-300 px-2 py-1 rounded-lg font-extrabold text-xs transition-all flex items-center gap-1 shadow-xs">
+            <i class="fa-solid fa-rotate-left text-[9px]"></i> 今日
           </button>
         </div>
       </div>
-      <div id="dailyCardsContainer" class="space-y-3"></div>
+      <div id="dailyCardsContainer" class="space-y-2"></div>
     </section>
 
     <!-- 2. 按月日曆視圖 -->
-    <section id="viewCalendar" class="hidden space-y-4">
-      <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm">
-        <div class="flex items-center justify-between mb-4">
-          <button onclick="changeMonth(-1)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 text-xs sm:text-sm font-bold transition-all"><i class="fa-solid fa-chevron-left"></i> 上個月</button>
-          <h2 id="calendarMonthTitle" class="text-lg sm:text-2xl font-extrabold text-slate-800">2026 年 8 月</h2>
-          <button onclick="changeMonth(1)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 text-xs sm:text-sm font-bold transition-all">下個月 <i class="fa-solid fa-chevron-right"></i></button>
+    <section id="viewCalendar" class="hidden space-y-3">
+      <div class="bg-white p-3 sm:p-5 rounded-2xl border border-slate-200 shadow-xs">
+        <div class="flex items-center justify-between mb-3">
+          <button onclick="changeMonth(-1)" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 text-xs font-bold transition-all"><i class="fa-solid fa-chevron-left"></i> 上個月</button>
+          <h2 id="calendarMonthTitle" class="text-base sm:text-xl font-extrabold text-slate-800">2026 年 8 月</h2>
+          <button onclick="changeMonth(1)" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 text-xs font-bold transition-all">下個月 <i class="fa-solid fa-chevron-right"></i></button>
         </div>
-        <div class="grid grid-cols-7 gap-1 text-center font-bold text-slate-600 text-xs sm:text-sm py-2 border-b border-slate-200 bg-slate-50/80 rounded-t-xl">
+        <div class="grid grid-cols-7 gap-1 text-center font-bold text-slate-600 text-xs py-1.5 border-b border-slate-200 bg-slate-50/80 rounded-t-xl">
           <div class="text-rose-600">日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div class="text-emerald-700">六</div>
         </div>
-        <div id="calendarGrid" class="grid grid-cols-7 gap-1 sm:gap-2 mt-2"></div>
+        <div id="calendarGrid" class="grid grid-cols-7 gap-1 mt-1.5"></div>
       </div>
     </section>
 
     <!-- 3. 食材庫視圖 -->
-    <section id="viewLibrary" class="hidden space-y-3">
-      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-        <div class="flex items-center justify-between flex-wrap gap-2">
-          <h2 class="font-bold text-slate-800 text-base flex items-center gap-1.5"><span>🥦</span> 食材解鎖圖鑑</h2>
-          <div class="flex items-center gap-1.5 text-xs">
-            <span class="bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-bold" id="unlockedStatsText">解鎖 0 / 100+ 種</span>
-            <span class="bg-rose-100 text-rose-800 px-2.5 py-0.5 rounded-full font-bold" id="allergyStatsText">❌ 過敏 0 種</span>
+    <section id="viewLibrary" class="hidden space-y-2.5">
+      <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-xs space-y-2">
+        <div class="flex items-center justify-between flex-wrap gap-1.5">
+          <h2 class="font-bold text-slate-800 text-sm flex items-center gap-1"><span>🥦</span> 食材解鎖圖鑑</h2>
+          <div class="flex items-center gap-1 text-[11px]">
+            <span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold" id="unlockedStatsText">解鎖 0 / 100+ 種</span>
+            <span class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full font-bold" id="allergyStatsText">❌ 過敏 0 種</span>
           </div>
         </div>
-        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar text-xs font-medium">
-          <button onclick="filterLibraryCategory('all')" class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white font-bold whitespace-nowrap shadow-sm">全部食材</button>
-          <button onclick="filterLibraryCategory('穀物澱粉')" class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🌾 穀物</button>
-          <button onclick="filterLibraryCategory('蔬菜菌菇')" class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🥦 蔬菜</button>
-          <button onclick="filterLibraryCategory('水果')" class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🍎 水果</button>
-          <button onclick="filterLibraryCategory('蛋豆魚肉乳')" class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🥩 蛋白</button>
-          <button onclick="filterLibraryCategory('海藻其他')" class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🌿 其他</button>
+        <div class="flex items-center gap-1 overflow-x-auto pb-0.5 custom-scrollbar text-xs font-medium">
+          <button onclick="filterLibraryCategory('all')" class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-bold whitespace-nowrap shadow-xs">全部食材</button>
+          <button onclick="filterLibraryCategory('穀物澱粉')" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🌾 穀物</button>
+          <button onclick="filterLibraryCategory('蔬菜菌菇')" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🥦 蔬菜</button>
+          <button onclick="filterLibraryCategory('水果')" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🍎 水果</button>
+          <button onclick="filterLibraryCategory('蛋豆魚肉乳')" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🥩 蛋白</button>
+          <button onclick="filterLibraryCategory('海藻其他')" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🌿 其他</button>
         </div>
         <div class="relative">
-          <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
-          <input type="text" id="librarySearchInput" oninput="renderLibrary()" placeholder="搜尋食材名稱..." class="w-full pl-9 pr-3 py-1.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2 text-slate-400 text-[10px]"></i>
+          <input type="text" id="librarySearchInput" oninput="renderLibrary()" placeholder="搜尋食材名稱..." class="w-full pl-7 pr-2.5 py-1 border border-slate-300 rounded-lg text-xs bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500">
         </div>
       </div>
-      <div id="libraryGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5"></div>
+      <div id="libraryGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2"></div>
     </section>
 
   </main>
 
   <!-- 彈窗 Modal -->
-  <div id="mealModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden">
-    <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[92vh] overflow-y-auto custom-scrollbar shadow-2xl border border-slate-100">
+  <div id="mealModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-2.5 hidden">
+    <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[95vh] overflow-y-auto custom-scrollbar shadow-2xl border border-slate-100">
       
-      <div class="p-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
-        <h3 class="font-bold text-slate-800 text-lg flex items-center gap-1.5"><span>🍲</span> <span id="modalHeaderLabel">紀錄餐點食材</span></h3>
-        <button onclick="closeMealModal()" class="text-slate-400 hover:text-slate-600 w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-100 transition-all"><i class="fa-solid fa-xmark text-lg"></i></button>
+      <div class="p-3.5 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
+        <h3 class="font-bold text-slate-800 text-base flex items-center gap-1"><span>🍲</span> <span id="modalHeaderLabel">紀錄餐點食材</span></h3>
+        <button onclick="closeMealModal()" class="text-slate-400 hover:text-slate-600 w-7 h-7 rounded-full flex items-center justify-center hover:bg-slate-100 transition-all"><i class="fa-solid fa-xmark text-base"></i></button>
       </div>
 
-      <form id="mealForm" onsubmit="handleMealSubmit(event)" class="p-4 sm:p-6 space-y-4">
+      <form id="mealForm" onsubmit="handleMealSubmit(event)" class="p-3.5 sm:p-5 space-y-3">
         <input type="hidden" id="editingMealId" value="">
 
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">日期</label>
-            <input type="date" id="mealDate" required class="w-full border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500">
+            <label class="block text-[11px] font-bold text-slate-700 mb-0.5">日期</label>
+            <input type="date" id="mealDate" required class="w-full border border-slate-300 rounded-lg px-2 py-1 text-xs bg-slate-50 focus:bg-white focus:ring-1 focus:ring-emerald-500">
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">時間</label>
-            <input type="time" id="mealTime" value="12:00" required class="w-full border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500">
+            <label class="block text-[11px] font-bold text-slate-700 mb-0.5">時間</label>
+            <input type="time" id="mealTime" value="12:00" required class="w-full border border-slate-300 rounded-lg px-2 py-1 text-xs bg-slate-50 focus:bg-white focus:ring-1 focus:ring-emerald-500">
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">餐別</label>
-            <select id="mealType" class="w-full border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500">
+            <label class="block text-[11px] font-bold text-slate-700 mb-0.5">餐別</label>
+            <select id="mealType" class="w-full border border-slate-300 rounded-lg px-2 py-1 text-xs bg-slate-50 focus:bg-white focus:ring-1 focus:ring-emerald-500">
               <option value="早餐">🥣 早餐</option>
               <option value="早點心">🍎 早點心</option>
               <option value="午餐" selected>🍱 午餐</option>
@@ -191,41 +191,41 @@
             </select>
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">食用總量 (g/ml)</label>
-            <input type="number" id="mealWeight" placeholder="例：80" class="w-full border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500">
+            <label class="block text-[11px] font-bold text-slate-700 mb-0.5">食用總量 (g/ml)</label>
+            <input type="number" id="mealWeight" placeholder="例：80" class="w-full border border-slate-300 rounded-lg px-2 py-1 text-xs bg-slate-50 focus:bg-white focus:ring-1 focus:ring-emerald-500">
           </div>
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">選擇食用食材</label>
-          <div class="relative mb-2">
-            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
-            <input type="text" id="pickerSearchInput" oninput="renderPickerChips()" placeholder="🔍 關鍵字搜尋..." class="w-full pl-8 pr-3 py-1.5 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500">
+          <label class="block text-[11px] font-bold text-slate-700 mb-1">選擇食用食材</label>
+          <div class="relative mb-1.5">
+            <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2 text-slate-400 text-[10px]"></i>
+            <input type="text" id="pickerSearchInput" oninput="renderPickerChips()" placeholder="🔍 關鍵字搜尋..." class="w-full pl-7 pr-2.5 py-1 border border-slate-300 rounded-lg text-xs bg-slate-50 focus:bg-white focus:ring-1 focus:ring-emerald-500">
           </div>
 
-          <div class="flex gap-1 overflow-x-auto pb-1 mb-2 custom-scrollbar text-xs">
-            <button type="button" onclick="switchPickerCategory('穀物澱粉')" class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-bold whitespace-nowrap">🌾 穀物</button>
-            <button type="button" onclick="switchPickerCategory('蔬菜菌菇')" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap">🥦 蔬菜</button>
-            <button type="button" onclick="switchPickerCategory('水果')" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap">🍎 水果</button>
-            <button type="button" onclick="switchPickerCategory('蛋豆魚肉乳')" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap">🥩 蛋白</button>
-            <button type="button" onclick="switchPickerCategory('海藻其他')" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap">🌿 其他</button>
-            <button type="button" onclick="switchPickerCategory('unlocked')" class="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 font-bold whitespace-nowrap">✨ 解鎖</button>
+          <div class="flex gap-1 overflow-x-auto pb-0.5 mb-1.5 custom-scrollbar text-xs">
+            <button type="button" onclick="switchPickerCategory('穀物澱粉')" class="px-2 py-0.5 rounded-md bg-emerald-600 text-white font-bold whitespace-nowrap text-[11px]">🌾 穀物</button>
+            <button type="button" onclick="switchPickerCategory('蔬菜菌菇')" class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap text-[11px]">🥦 蔬菜</button>
+            <button type="button" onclick="switchPickerCategory('水果')" class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap text-[11px]">🍎 水果</button>
+            <button type="button" onclick="switchPickerCategory('蛋豆魚肉乳')" class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap text-[11px]">🥩 蛋白</button>
+            <button type="button" onclick="switchPickerCategory('海藻其他')" class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap text-[11px]">🌿 其他</button>
+            <button type="button" onclick="switchPickerCategory('unlocked')" class="px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 font-bold whitespace-nowrap text-[11px]">✨ 解鎖</button>
           </div>
 
-          <div id="pickerChipsContainer" class="flex flex-wrap gap-1.5 p-2.5 bg-slate-50 rounded-2xl border border-slate-200 max-h-40 overflow-y-auto custom-scrollbar"></div>
+          <div id="pickerChipsContainer" class="flex flex-wrap gap-1 p-2 bg-slate-50 rounded-xl border border-slate-200 max-h-32 overflow-y-auto custom-scrollbar"></div>
         </div>
 
-        <div class="bg-emerald-50/60 p-3 rounded-2xl border border-emerald-100 space-y-2">
-          <div class="text-xs font-bold text-emerald-900 flex items-center justify-between">
+        <div class="bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100 space-y-1.5">
+          <div class="text-[11px] font-bold text-emerald-900 flex items-center justify-between">
             <span>已選擇食材：</span>
             <span id="selectedIngredientsCount" class="text-emerald-700 font-semibold">0 項</span>
           </div>
-          <div id="selectedIngredientsList" class="space-y-2 min-h-[30px]"></div>
+          <div id="selectedIngredientsList" class="space-y-1.5 min-h-[20px]"></div>
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">食材形態 / 質地</label>
-          <select id="mealTexture" class="w-full border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500">
+          <label class="block text-[11px] font-bold text-slate-700 mb-0.5">食材形態 / 質地</label>
+          <select id="mealTexture" class="w-full border border-slate-300 rounded-lg px-2 py-1 text-xs bg-slate-50 focus:bg-white focus:ring-1 focus:ring-emerald-500">
             <option value="十倍粥 / 米湯" selected>🥣 十倍粥 / 米湯</option>
             <option value="七倍粥 / 濃粥">🥣 七倍粥 / 濃粥</option>
             <option value="五倍粥 / 軟飯">🍚 五倍粥 / 軟飯</option>
@@ -237,13 +237,13 @@
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">備註 / 觀察心得（選填）</label>
-          <textarea id="mealNotes" rows="2" placeholder="例：皮膚無紅疹、大便正常..." class="w-full border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500"></textarea>
+          <label class="block text-[11px] font-bold text-slate-700 mb-0.5">備註 / 觀察心得（選填）</label>
+          <textarea id="mealNotes" rows="2" placeholder="例：皮膚無紅疹、大便正常..." class="w-full border border-slate-300 rounded-lg px-2 py-1 text-xs bg-slate-50 focus:bg-white focus:ring-1 focus:ring-emerald-500"></textarea>
         </div>
 
-        <div class="flex gap-2.5 pt-2 border-t border-slate-100">
-          <button type="button" onclick="closeMealModal()" class="flex-1 bg-slate-100 text-slate-600 py-2.5 rounded-xl font-bold hover:bg-slate-200 text-xs">取消</button>
-          <button type="submit" class="flex-1 bg-emerald-600 text-white py-2.5 rounded-xl font-bold hover:bg-emerald-700 text-xs shadow-md" id="submitMealBtnLabel">儲存餐點紀錄</button>
+        <div class="flex gap-2 pt-1 border-t border-slate-100">
+          <button type="button" onclick="closeMealModal()" class="flex-1 bg-slate-100 text-slate-600 py-2 rounded-xl font-bold hover:bg-slate-200 text-xs">取消</button>
+          <button type="submit" class="flex-1 bg-emerald-600 text-white py-2 rounded-xl font-bold hover:bg-emerald-700 text-xs shadow-xs" id="submitMealBtnLabel">儲存餐點紀錄</button>
         </div>
       </form>
 
@@ -345,12 +345,12 @@
           renderLibrary();
           updateBadges();
         }
-        document.getElementById('cloudStatusBadge').className = "bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded-md font-bold";
+        document.getElementById('cloudStatusBadge').className = "bg-emerald-100 text-emerald-800 text-[9px] px-1.5 py-0.5 rounded font-bold";
         document.getElementById('cloudStatusBadge').innerText = "✓ 雲端已即時同步";
       }, (error) => {
         console.error("Firebase error:", error);
-        document.getElementById('cloudStatusBadge').className = "bg-rose-100 text-rose-800 text-[10px] px-2 py-0.5 rounded-md font-bold";
-        document.getElementById('cloudStatusBadge').innerText = "⚠️ 權限受限，請發布Rules";
+        document.getElementById('cloudStatusBadge').className = "bg-rose-100 text-rose-800 text-[9px] px-1.5 py-0.5 rounded font-bold";
+        document.getElementById('cloudStatusBadge').innerText = "⚠️ 權限受限";
       });
     }
 
@@ -393,7 +393,7 @@
       renderDailyCards();
     }
 
-    /* 渲染按日卡片：高度精簡與手機化優化 */
+    /* 渲染按日卡片：改為橫向平鋪（Chip）佈局，高度超級節省，完美符合手機直螢幕 */
     function renderDailyCards() {
       const container = document.getElementById('dailyCardsContainer');
       const targetDate = document.getElementById('dailyDateFilter').value;
@@ -406,56 +406,58 @@
 
       if (dayMeals.length === 0) {
         container.innerHTML = `
-          <div class="bg-white rounded-2xl p-6 text-center border border-slate-200 text-slate-400 space-y-2">
-            <div class="text-3xl">🥣</div>
+          <div class="bg-white rounded-2xl p-5 text-center border border-slate-200 text-slate-400 space-y-2">
+            <div class="text-2xl">🥣</div>
             <p class="font-medium text-xs text-slate-600">${targetDate} 尚無副食品紀錄</p>
-            <button onclick="openMealModal(null, '${targetDate}')" class="bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm hover:bg-emerald-700">+ 新增本日餐點</button>
+            <button onclick="openMealModal(null, '${targetDate}')" class="bg-emerald-600 text-white px-3 py-1 rounded-lg text-xs font-bold shadow-xs hover:bg-emerald-700">+ 新增餐點</button>
           </div>`;
         return;
       }
 
       let html = '';
       dayMeals.forEach(meal => {
-        let ingredientsLinesHtml = (meal.ingredients || []).map(item => {
+        let ingredientsChipsHtml = (meal.ingredients || []).map(item => {
           const ingName = typeof item === 'string' ? item : item.name;
           const isNew = meal.newIngredients && meal.newIngredients.includes(ingName);
           const foodObj = appData.foods.find(f => f.name === ingName) || {};
           const status = appData.foodStatus[ingName] || 'normal';
 
-          let statusBadge = '';
-          if (status === 'like') statusBadge = '<span class="bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-bold px-1.5 py-0.5 rounded-md">❤️ 喜歡</span>';
-          else if (status === 'dislike') statusBadge = '<span class="bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-bold px-1.5 py-0.5 rounded-md">🤢 討厭</span>';
-          else if (status === 'allergy') statusBadge = '<span class="bg-rose-600 text-black border border-rose-800 text-[10px] font-black px-1.5 py-0.5 rounded shadow-2xs">❌ 過敏</span>';
+          let statusTag = '';
+          if (status === 'like') statusTag = '<span class="text-[9px] text-rose-600 font-bold ml-0.5">❤️</span>';
+          else if (status === 'dislike') statusTag = '<span class="text-[9px] text-amber-700 font-bold ml-0.5">🤢</span>';
+          else if (status === 'allergy') statusTag = '<span class="bg-rose-600 text-black text-[9px] font-black px-1 py-0.2 rounded ml-0.5">❌過敏</span>';
 
           return `
-            <div class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 w-full text-xs">
-              <div class="flex items-center gap-1.5">
-                <span class="text-sm">${foodObj.icon || '🥦'}</span>
-                <span class="font-bold text-slate-800 text-xs">${escapeHtml(ingName)}</span>
-                ${isNew ? '<span class="bg-amber-400 text-slate-900 font-extrabold text-[9px] px-1 py-0.2 rounded shadow-2xs">新嘗試</span>' : ''}
-              </div>
-              <div>${statusBadge}</div>
+            <div class="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs">
+              <span>${foodObj.icon || '🥦'}</span>
+              <span class="font-bold text-slate-800">${escapeHtml(ingName)}</span>
+              ${isNew ? '<span class="bg-amber-400 text-slate-900 font-extrabold text-[8px] px-1 rounded">新</span>' : ''}
+              ${statusTag}
             </div>`;
         }).join('');
 
         html += `
-          <div class="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm space-y-2">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-              <div class="flex items-center gap-2">
-                <span class="bg-emerald-100 text-emerald-800 text-[11px] px-2 py-0.5 rounded-md font-bold">${meal.type || '餐點'}</span>
-                <span class="text-slate-500 font-semibold text-xs"><i class="fa-regular fa-clock text-[10px]"></i> ${meal.time || '--:--'}</span>
-                ${meal.weight ? `<span class="text-slate-400 text-[11px]">（${meal.weight} g/ml）</span>` : ''}
-              </div>
+          <div class="bg-white rounded-2xl p-3 border border-slate-200 shadow-xs space-y-2">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-1.5">
               <div class="flex items-center gap-1.5">
-                <button onclick="editMeal('${meal.id}')" class="text-slate-400 hover:text-emerald-600 p-1" title="編輯"><i class="fa-solid fa-pen-to-square text-xs"></i></button>
-                <button onclick="deleteMeal('${meal.id}')" class="text-slate-400 hover:text-rose-600 p-1" title="刪除"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                <span class="bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded-md font-bold">${meal.type || '餐點'}</span>
+                <span class="text-slate-500 font-semibold text-[11px]"><i class="fa-regular fa-clock text-[9px]"></i> ${meal.time || '--:--'}</span>
+                ${meal.weight ? `<span class="text-slate-400 text-[10px]">（${meal.weight} g/ml）</span>` : ''}
+              </div>
+              <div class="flex items-center gap-1">
+                <button onclick="editMeal('${meal.id}')" class="text-slate-400 hover:text-emerald-600 p-1" title="編輯"><i class="fa-solid fa-pen-to-square text-[11px]"></i></button>
+                <button onclick="deleteMeal('${meal.id}')" class="text-slate-400 hover:text-rose-600 p-1" title="刪除"><i class="fa-solid fa-trash-can text-[11px]"></i></button>
               </div>
             </div>
-            <div class="space-y-1.5 max-h-48 overflow-y-auto custom-scrollbar">${ingredientsLinesHtml}</div>
-            <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-100 text-[11px] text-slate-600">
-              ${meal.texture ? `<span class="bg-slate-100 px-2 py-0.5 rounded-md"><b>質地：</b>${escapeHtml(meal.texture)}</span>` : ''}
-              ${meal.notes ? `<span class="bg-slate-100 px-2 py-0.5 rounded-md flex-1"><b>備註：</b>${escapeHtml(meal.notes)}</span>` : ''}
-            </div>
+
+            <!-- 食材改為橫向平鋪組合 -->
+            <div class="flex flex-wrap gap-1.5">${ingredientsChipsHtml}</div>
+
+            ${(meal.texture || meal.notes) ? `
+              <div class="bg-slate-50 px-2 py-1 rounded-lg border border-slate-100 text-[10px] text-slate-600 flex flex-wrap items-center gap-2">
+                ${meal.texture ? `<span><b>質地:</b> ${escapeHtml(meal.texture)}</span>` : ''}
+                ${meal.notes ? `<span class="truncate"><b>備註:</b> ${escapeHtml(meal.notes)}</span>` : ''}
+              </div>` : ''}
           </div>`;
       });
 
@@ -490,7 +492,7 @@
       grid.innerHTML = '';
 
       for (let i = 0; i < firstDay; i++) {
-        grid.innerHTML += `<div class="bg-slate-50/40 rounded-xl min-h-[90px]"></div>`;
+        grid.innerHTML += `<div class="bg-slate-50/40 rounded-xl min-h-[85px]"></div>`;
       }
 
       for (let d = 1; d <= daysInMonth; d++) {
@@ -504,22 +506,22 @@
             const status = appData.foodStatus[ingName] || 'normal';
 
             if (status === 'allergy') {
-              return `<span class="bg-rose-500 text-black font-black px-1 py-0.2 rounded shadow-2xs text-[9px] inline-flex items-center my-0.5 border border-rose-700">❌ ${escapeHtml(ingName)}</span>`;
+              return `<span class="bg-rose-500 text-black font-black px-1 py-0.2 rounded text-[8px] inline-flex items-center border border-rose-700">❌${escapeHtml(ingName)}</span>`;
             } else if (isNew) {
-              return `<span class="bg-amber-100 text-amber-900 border border-amber-300 font-bold px-1 py-0.2 rounded text-[10px] inline-flex items-center my-0.5"><span class="bg-emerald-600 text-white rounded px-0.5 mr-0.5 text-[8px]">新</span>${escapeHtml(ingName)}</span>`;
+              return `<span class="bg-amber-100 text-amber-900 border border-amber-300 font-bold px-1 py-0.2 rounded text-[9px] inline-flex items-center"><span class="bg-emerald-600 text-white rounded px-0.5 mr-0.5 text-[7px]">新</span>${escapeHtml(ingName)}</span>`;
             } else {
-              return `<span class="text-slate-800 font-medium text-[10px]">${escapeHtml(ingName)}</span>`;
+              return `<span class="text-slate-800 font-medium text-[9px]">${escapeHtml(ingName)}</span>`;
             }
           }).join('、');
 
-          return `<div class="text-[10px] bg-slate-100 p-1 rounded-lg border border-slate-200 flex flex-wrap items-center gap-0.5"><span class="font-bold text-slate-500">${m.type}:</span> ${ingsHtml}</div>`;
+          return `<div class="text-[9px] bg-slate-100 p-0.5 rounded border border-slate-200 flex flex-wrap items-center gap-0.5"><span class="font-bold text-slate-500">${m.type}:</span> ${ingsHtml}</div>`;
         }).join('');
 
         const isToday = dateStr === new Date().toISOString().split('T')[0];
         grid.innerHTML += `
-          <div onclick="jumpToDateFromCalendar('${dateStr}')" class="bg-white rounded-xl border ${isToday ? 'border-emerald-500 ring-2 ring-emerald-200' : 'border-slate-200'} p-1 sm:p-1.5 min-h-[90px] cursor-pointer">
-            <div class="border-b border-slate-100 pb-0.5"><span class="text-[10px] sm:text-xs font-bold ${isToday ? 'bg-emerald-600 text-white rounded-full w-4 h-4 flex items-center justify-center' : 'text-slate-700'}">${d}</span></div>
-            <div class="space-y-1 overflow-y-auto mt-1 max-h-20 custom-scrollbar">${mealsListHtml}</div>
+          <div onclick="jumpToDateFromCalendar('${dateStr}')" class="bg-white rounded-xl border ${isToday ? 'border-emerald-500 ring-2 ring-emerald-200' : 'border-slate-200'} p-1 min-h-[85px] cursor-pointer">
+            <div class="border-b border-slate-100 pb-0.5"><span class="text-[9px] font-bold ${isToday ? 'bg-emerald-600 text-white rounded-full w-3.5 h-3.5 flex items-center justify-center' : 'text-slate-700'}">${d}</span></div>
+            <div class="space-y-0.5 overflow-y-auto mt-0.5 max-h-16 custom-scrollbar">${mealsListHtml}</div>
           </div>`;
       }
     }
@@ -561,15 +563,15 @@
         else if (status === 'allergy') statusIcon = '❌ 過敏';
 
         return `
-          <div class="bg-white rounded-2xl p-2.5 border ${status === 'allergy' ? 'border-rose-400 bg-rose-50/30' : 'border-slate-200'} shadow-sm flex items-center justify-between">
+          <div class="bg-white rounded-xl p-2 border ${status === 'allergy' ? 'border-rose-400 bg-rose-50/30' : 'border-slate-200'} shadow-xs flex items-center justify-between">
             <div class="flex items-center gap-1.5">
-              <span class="text-xl">${food.icon || '🥦'}</span>
+              <span class="text-lg">${food.icon || '🥦'}</span>
               <div>
                 <div class="font-bold text-xs text-slate-800">${escapeHtml(food.name)}</div>
-                <div class="text-[10px] ${isTried ? 'text-emerald-600 font-semibold' : 'text-slate-400'}">${isTried ? '✓ 已解鎖' : '未解鎖'}</div>
+                <div class="text-[9px] ${isTried ? 'text-emerald-600 font-semibold' : 'text-slate-400'}">${isTried ? '✓ 解鎖' : '未解鎖'}</div>
               </div>
             </div>
-            ${statusIcon ? `<span class="text-[10px] font-black px-1.5 py-0.5 rounded ${status === 'allergy' ? 'bg-rose-500 text-black border border-rose-700' : 'bg-slate-100 text-slate-700'}">${statusIcon}</span>` : ''}
+            ${statusIcon ? `<span class="text-[9px] font-black px-1 py-0.2 rounded ${status === 'allergy' ? 'bg-rose-500 text-black border border-rose-700' : 'bg-slate-100 text-slate-700'}">${statusIcon}</span>` : ''}
           </div>`;
       }).join('');
     }
@@ -591,7 +593,7 @@
         document.getElementById('mealType').value = mealToEdit.type || '午餐';
         document.getElementById('mealWeight').value = mealToEdit.weight || '';
         document.getElementById('mealTexture').value = mealToEdit.texture || '十倍粥 / 米湯';
-        document.getElementById('mealNotes').value = mealNotes.value || '';
+        document.getElementById('mealNotes').value = mealToEdit.notes || '';
 
         selectedMealIngredients = (mealToEdit.ingredients || []).map(item => {
           const ingName = typeof item === 'string' ? item : item.name;
@@ -639,12 +641,12 @@
 
       let html = '';
       if (searchKey && !appData.foods.some(f => f.name.toLowerCase() === searchKeyLower)) {
-        html += `<button type="button" onclick="addCustomFood('${escapeHtml(searchKey)}')" class="w-full mb-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700">+ 新增「${escapeHtml(searchKey)}」至食材庫並選取</button>`;
+        html += `<button type="button" onclick="addCustomFood('${escapeHtml(searchKey)}')" class="w-full mb-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700">+ 新增「${escapeHtml(searchKey)}」至食材庫並選取</button>`;
       }
 
       html += filtered.map(food => {
         const isSelected = selectedMealIngredients.some(i => i.name === food.name);
-        return `<button type="button" onclick="togglePickIngredient('${escapeHtml(food.name)}')" class="px-2.5 py-1 rounded-xl text-xs font-medium border flex items-center gap-1 ${isSelected ? 'bg-emerald-600 text-white font-bold' : 'bg-white text-slate-700 hover:bg-slate-100'}"><span>${food.icon || '🥦'}</span><span>${escapeHtml(food.name)}</span></button>`;
+        return `<button type="button" onclick="togglePickIngredient('${escapeHtml(food.name)}')" class="px-2 py-0.5 rounded-lg text-xs font-medium border flex items-center gap-1 ${isSelected ? 'bg-emerald-600 text-white font-bold' : 'bg-white text-slate-700 hover:bg-slate-100'}"><span>${food.icon || '🥦'}</span><span>${escapeHtml(food.name)}</span></button>`;
       }).join('');
 
       container.innerHTML = html;
@@ -680,17 +682,17 @@
       container.innerHTML = selectedMealIngredients.map((item, index) => {
         const currentStatus = appData.foodStatus[item.name] || 'normal';
         return `
-          <div class="bg-white border border-slate-200 rounded-xl p-2 space-y-1.5 text-xs shadow-2xs">
+          <div class="bg-white border border-slate-200 rounded-lg p-1.5 space-y-1 text-xs shadow-2xs">
             <div class="flex items-center justify-between">
               <span class="font-bold text-xs text-slate-800">${escapeHtml(item.name)}</span>
-              <button type="button" onclick="toggleIngredientNewFlag(${index})" class="px-2 py-0.5 rounded-md font-bold text-[10px] ${item.isNew ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-slate-100 text-slate-500'}">${item.isNew ? '✨ 新食材' : '+ 標為新食材'}</button>
+              <button type="button" onclick="toggleIngredientNewFlag(${index})" class="px-1.5 py-0.2 rounded font-bold text-[9px] ${item.isNew ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-slate-100 text-slate-500'}">${item.isNew ? '✨ 新食材' : '+ 標為新食材'}</button>
             </div>
-            <div class="flex items-center gap-1 pt-1 border-t border-slate-100 text-[10px]">
-              <span class="text-slate-500 font-medium">試敏：</span>
-              <button type="button" onclick="setFoodStatus('${escapeHtml(item.name)}', 'like')" class="px-1.5 py-0.5 rounded border ${currentStatus === 'like' ? 'bg-rose-100 border-rose-400 text-rose-800 font-bold' : 'bg-slate-50 text-slate-600'}">❤️ 喜歡</button>
-              <button type="button" onclick="setFoodStatus('${escapeHtml(item.name)}', 'normal')" class="px-1.5 py-0.5 rounded border ${currentStatus === 'normal' ? 'bg-slate-200 border-slate-400 text-slate-800 font-bold' : 'bg-slate-50 text-slate-600'}">😐 普通</button>
-              <button type="button" onclick="setFoodStatus('${escapeHtml(item.name)}', 'dislike')" class="px-1.5 py-0.5 rounded border ${currentStatus === 'dislike' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 text-slate-600'}">🤢 討厭</button>
-              <button type="button" onclick="setFoodStatus('${escapeHtml(item.name)}', 'allergy')" class="px-1.5 py-0.5 rounded border ${currentStatus === 'allergy' ? 'bg-rose-600 text-black font-extrabold border border-rose-800' : 'bg-slate-50 text-rose-600 border-rose-200'}">❌ 過敏</button>
+            <div class="flex items-center gap-0.5 pt-0.5 border-t border-slate-100 text-[10px]">
+              <span class="text-slate-500 font-medium">試敏:</span>
+              <button type="button" onclick="setFoodStatus('${escapeHtml(item.name)}', 'like')" class="px-1 py-0.2 rounded border ${currentStatus === 'like' ? 'bg-rose-100 border-rose-400 text-rose-800 font-bold' : 'bg-slate-50 text-slate-600'}">❤️ 喜歡</button>
+              <button type="button" onclick="setFoodStatus('${escapeHtml(item.name)}', 'normal')" class="px-1 py-0.2 rounded border ${currentStatus === 'normal' ? 'bg-slate-200 border-slate-400 text-slate-800 font-bold' : 'bg-slate-50 text-slate-600'}">😐 普通</button>
+              <button type="button" onclick="setFoodStatus('${escapeHtml(item.name)}', 'dislike')" class="px-1 py-0.2 rounded border ${currentStatus === 'dislike' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 text-slate-600'}">🤢 討厭</button>
+              <button type="button" onclick="setFoodStatus('${escapeHtml(item.name)}', 'allergy')" class="px-1 py-0.2 rounded border ${currentStatus === 'allergy' ? 'bg-rose-600 text-black font-extrabold border border-rose-800' : 'bg-slate-50 text-rose-600 border-rose-200'}">❌ 過敏</button>
             </div>
           </div>`;
       }).join('');

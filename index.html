@@ -410,6 +410,7 @@
       }
     }
 
+    /* 渲染月日曆：有過敏食材時醒目標示❌紅底 */
     function renderCalendar() {
       const year = calendarCurrentDate.getFullYear();
       const month = calendarCurrentDate.getMonth();
@@ -434,9 +435,13 @@
             const isNew = m.newIngredients && m.newIngredients.includes(ingName);
             const status = appData.foodStatus[ingName] || 'normal';
 
-            if (status === 'allergy') return `<span class="bg-rose-500 text-white font-extrabold px-1.5 py-0.5 rounded text-[10px]">❌ ${escapeHtml(ingName)}</span>`;
-            if (isNew) return `<span class="bg-amber-100 text-amber-900 border border-amber-300 font-bold px-1.5 py-0.5 rounded text-[11px]"><span class="bg-emerald-600 text-white rounded px-1 py-0.5 mr-1 text-[9px]">新</span>${escapeHtml(ingName)}</span>`;
-            return `<span class="text-slate-700">${escapeHtml(ingName)}</span>`;
+            if (status === 'allergy') {
+              return `<span class="bg-rose-600 text-white font-extrabold px-1.5 py-0.5 rounded shadow-sm text-[10px] inline-flex items-center my-0.5">❌ ${escapeHtml(ingName)}</span>`;
+            } else if (isNew) {
+              return `<span class="bg-amber-100 text-amber-900 border border-amber-300 font-bold px-1.5 py-0.5 rounded text-[11px] inline-flex items-center my-0.5"><span class="bg-emerald-600 text-white rounded px-1 py-0.5 mr-1 text-[9px]">新</span>${escapeHtml(ingName)}</span>`;
+            } else {
+              return `<span class="text-slate-700">${escapeHtml(ingName)}</span>`;
+            }
           }).join('、');
 
           return `<div class="text-[11px] bg-slate-50 p-1.5 rounded-xl border border-slate-100 flex flex-wrap items-center gap-1"><span class="font-bold text-slate-500">${m.type}:</span> ${ingsHtml}</div>`;
@@ -593,7 +598,7 @@
       if (idx >= 0) {
         selectedMealIngredients.splice(idx, 1);
       } else {
-        const isEverTried = appData.meals.some(m => (m.ingredients || []).some(i => (typeof i === 'string' ? i : i.name) === name));
+        const isEverTried = appData.meals.some(m => (m.ingredients || []).forEach(i => (typeof i === 'string' ? i : i.name) === name));
         selectedMealIngredients.push({ name: name, isNew: !isEverTried });
       }
       renderSelectedIngredientsList();
@@ -628,6 +633,7 @@
       saveData();
       renderSelectedIngredientsList();
       renderDailyCards();
+      renderCalendar();
     }
 
     function toggleIngredientNewFlag(index) {
@@ -666,6 +672,7 @@
       closeMealModal();
       document.getElementById('dailyDateFilter').value = mealData.date;
       renderDailyCards();
+      renderCalendar();
     }
 
     function deleteMeal(id) {
@@ -673,6 +680,7 @@
         appData.meals = appData.meals.filter(m => m.id !== id);
         saveData();
         renderDailyCards();
+        renderCalendar();
       }
     }
 

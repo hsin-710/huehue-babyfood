@@ -80,7 +80,6 @@
     <!-- 1. 按日卡片視圖 -->
     <section id="viewDaily" class="space-y-4">
       <div class="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex-wrap gap-3">
-        
         <div class="flex items-center gap-2 flex-wrap">
           <button onclick="shiftDailyDate(-1)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-all flex items-center gap-1">
             <i class="fa-solid fa-chevron-left text-[10px]"></i> 前一天
@@ -105,7 +104,7 @@
       <div id="dailyCardsContainer" class="space-y-4"></div>
     </section>
 
-    <!-- 2. 按月日曆視圖 (已強化黃色底色標籤與「新」字樣) -->
+    <!-- 2. 按月日曆視圖 -->
     <section id="viewCalendar" class="hidden space-y-4">
       <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
         <div class="flex items-center justify-between mb-6">
@@ -257,20 +256,132 @@
 
   <!-- JAVASCRIPT LOGIC -->
   <script>
+    // 包含 100+ 種常見寶寶副食品食材資料庫
     const DEFAULT_FOOD_DATABASE = [
-      { name: '白米', category: '穀物澱粉', icon: '🍚', status: 'none' },
-      { name: '地瓜', category: '穀物澱粉', icon: '🍠', status: 'none' },
-      { name: '馬鈴薯', category: '穀物澱粉', icon: '🥔', status: 'none' },
-      { name: '高麗菜', category: '蔬菜菌菇', icon: '🥬', status: 'none' },
-      { name: '胡蘿蔔', category: '蔬菜菌菇', icon: '🥕', status: 'none' },
-      { name: '南瓜', category: '蔬菜菌菇', icon: '🎃', status: 'none' },
-      { name: '青花菜', category: '蔬菜菌菇', icon: '🥦', status: 'none' },
-      { name: '蘋果', category: '水果', icon: '🍎', status: 'none' },
-      { name: '香蕉', category: '水果', icon: '🍌', status: 'none' },
-      { name: '火龍果', category: '水果', icon: '🐉', status: 'none' },
-      { name: '豆腐', category: '蛋豆魚肉乳', icon: '🧊', status: 'none' },
-      { name: '蛋黃', category: '蛋豆魚肉乳', icon: '🍳', status: 'none' },
-      { name: '鮭魚', category: '蛋豆魚肉乳', icon: '🐟', status: 'none' }
+      // 🌾 穀物澱粉 (20項)
+      { name: '白米', category: '穀物澱粉', icon: '🍚' },
+      { name: '胚芽米', category: '穀物澱粉', icon: '🌾' },
+      { name: '糙米', category: '穀物澱粉', icon: '🌾' },
+      { name: '燕麥', category: '穀物澱粉', icon: '🥣' },
+      { name: '小米', category: '穀物澱粉', icon: '🌾' },
+      { name: '藜麥', category: '穀物澱粉', icon: '🌾' },
+      { name: '地瓜', category: '穀物澱粉', icon: '🍠' },
+      { name: '紫薯', category: '穀物澱粉', icon: '🍠' },
+      { name: '馬鈴薯', category: '穀物澱粉', icon: '🥔' },
+      { name: '南瓜', category: '穀物澱粉', icon: '🎃' },
+      { name: '芋頭', category: '穀物澱粉', icon: '🍠' },
+      { name: '山藥', category: '穀物澱粉', icon: '🍠' },
+      { name: '玉米', category: '穀物澱粉', icon: '🌽' },
+      { name: '蓮實/蓮子', category: '穀物澱粉', icon: '⚪' },
+      { name: '栗子', category: '穀物澱粉', icon: '🌰' },
+      { name: '義大利麵', category: '穀物澱粉', icon: '🍝' },
+      { name: '烏龍麵', category: '穀物澱粉', icon: '🍜' },
+      { name: '吐司/麵包', category: '穀物澱粉', icon: '🍞' },
+      { name: '饅頭', category: '穀物澱粉', icon: '🥯' },
+      { name: '西谷米', category: '穀物澱粉', icon: '⚪' },
+
+      // 🥦 蔬菜菌菇 (35項)
+      { name: '高麗菜', category: '蔬菜菌菇', icon: '🥬' },
+      { name: '青花菜', category: '蔬菜菌菇', icon: '🥦' },
+      { name: '花菜', category: '蔬菜菌菇', icon: '🥦' },
+      { name: '胡蘿蔔', category: '蔬菜菌菇', icon: '🥕' },
+      { name: '白蘿蔔', category: '蔬菜菌菇', icon: '🥗' },
+      { name: '菠菜', category: '蔬菜菌菇', icon: '🥬' },
+      { name: '小白菜', category: '蔬菜菌菇', icon: '🥬' },
+      { name: '青江菜', category: '蔬菜菌菇', icon: '🥬' },
+      { name: '空心菜', category: '蔬菜菌菇', icon: '🥬' },
+      { name: '地瓜葉', category: '蔬菜菌菇', icon: '🥬' },
+      { name: '莧菜', category: '蔬菜菌菇', icon: '🥬' },
+      { name: '茼蒿', category: '蔬菜菌菇', icon: '🥬' },
+      { name: '芥藍菜', category: '蔬菜菌菇', icon: '🥬' },
+      { name: '大白菜', category: '蔬菜菌菇', icon: '🥬' },
+      { name: '娃娃菜', category: '蔬菜菌菇', icon: '🥬' },
+      { name: '絲瓜', category: '蔬菜菌菇', icon: '🥒' },
+      { name: '大黃瓜', category: '蔬菜菌菇', icon: '🥒' },
+      { name: '小黃瓜', category: '蔬菜菌菇', icon: '🥒' },
+      { name: '苦瓜', category: '蔬菜菌菇', icon: '🥒' },
+      { name: '冬瓜', category: '蔬菜菌菇', icon: '🍈' },
+      { name: '櫛瓜', category: '蔬菜菌菇', icon: '🥒' },
+      { name: '茄子', category: '蔬菜菌菇', icon: '🍆' },
+      { name: '番茄', category: '蔬菜菌菇', icon: '🍅' },
+      { name: '甜椒/彩椒', category: '蔬菜菌菇', icon: '🫑' },
+      { name: '洋蔥', category: '蔬菜菌菇', icon: '🧅' },
+      { name: '蘆筍', category: '蔬菜菌菇', icon: '🥦' },
+      { name: '秋葵', category: '蔬菜菌菇', icon: '🫑' },
+      { name: '玉米筍', category: '蔬菜菌菇', icon: '🌽' },
+      { name: '香菇', category: '蔬菜菌菇', icon: '🍄' },
+      { name: '金針菇', category: '蔬菜菌菇', icon: '🍄' },
+      { name: '杏鮑菇', category: '蔬菜菌菇', icon: '🍄' },
+      { name: '鴻喜菇', category: '蔬菜菌菇', icon: '🍄' },
+      { name: '木耳', category: '蔬菜菌菇', icon: '🍄' },
+      { name: '牛蒡', category: '蔬菜菌菇', icon: '🥕' },
+      { name: '蓮藕', category: '蔬菜菌菇', icon: '🥗' },
+
+      // 🍎 水果類 (25項)
+      { name: '蘋果', category: '水果', icon: '🍎' },
+      { name: '香蕉', category: '水果', icon: '🍌' },
+      { name: '水梨', category: '水果', icon: '🍐' },
+      { name: '芭樂', category: '水果', icon: '🍈' },
+      { name: '火龍果', category: '水果', icon: '🐉' },
+      { name: '木瓜', category: '水果', icon: '🍈' },
+      { name: '葡萄', category: '水果', icon: '🍇' },
+      { name: '蓮霧', category: '水果', icon: '🍎' },
+      { name: '草莓', category: '水果', icon: '🍓' },
+      { name: '藍莓', category: '水果', icon: '🫐' },
+      { name: '奇異果', category: '水果', icon: '🥝' },
+      { name: '水蜜桃', category: '水果', icon: '🍑' },
+      { name: '櫻桃', category: '水果', icon: '🍒' },
+      { name: '鳳梨', category: '水果', icon: '🍍' },
+      { name: '芒果', category: '水果', icon: '🥭' },
+      { name: '西瓜', category: '水果', icon: '🍉' },
+      { name: '哈密瓜', category: '水果', icon: '🍈' },
+      { name: '香瓜', category: '水果', icon: '🍈' },
+      { name: '橘子/柑橘', category: '水果', icon: '🍊' },
+      { name: '柳丁', category: '水果', icon: '🍊' },
+      { name: '檸檬', category: '水果', icon: '🍋' },
+      { name: '酪梨', category: '水果', icon: '🥑' },
+      { name: '棗子', category: '水果', icon: '🍈' },
+      { name: '柿子', category: '水果', icon: '🍊' },
+      { name: '荔枝/龍眼', category: '水果', icon: '🍒' },
+
+      // 🥩 蛋豆魚肉乳 (25項)
+      { name: '蛋黃', category: '蛋豆魚肉乳', icon: '🍳' },
+      { name: '蛋白', category: '蛋豆魚肉乳', icon: '🥚' },
+      { name: '全蛋', category: '蛋豆魚肉乳', icon: '🥚' },
+      { name: '嫩豆腐', category: '蛋豆魚肉乳', icon: '🧊' },
+      { name: '板豆腐', category: '蛋豆魚肉乳', icon: '🧊' },
+      { name: '豆漿', category: '蛋豆魚肉乳', icon: '🥛' },
+      { name: '毛豆', category: '蛋豆魚肉乳', icon: '🫛' },
+      { name: '雞胸肉', category: '蛋豆魚肉乳', icon: '🍗' },
+      { name: '雞腿肉', category: '蛋豆魚肉乳', icon: '🍗' },
+      { name: '豬絞肉', category: '蛋豆魚肉乳', icon: '🥩' },
+      { name: '豬里肌', category: '蛋豆魚肉乳', icon: '🥩' },
+      { name: '牛絞肉', category: '蛋豆魚肉乳', icon: '🥩' },
+      { name: '牛肉片', category: '蛋豆魚肉乳', icon: '🥩' },
+      { name: '鮭魚', category: '蛋豆魚肉乳', icon: '🐟' },
+      { name: '鱸魚', category: '蛋豆魚肉乳', icon: '🐟' },
+      { name: '鯛魚/鯛魚片', category: '蛋豆魚肉乳', icon: '🐟' },
+      { name: '鱈魚', category: '蛋豆魚肉乳', icon: '🐟' },
+      { name: '魩仔魚', category: '蛋豆魚肉乳', icon: '🐟' },
+      { name: '蝦仁/蝦子', category: '蛋豆魚肉乳', icon: '🦐' },
+      { name: '干貝', category: '蛋豆魚肉乳', icon: '🦪' },
+      { name: '無鹽起司', category: '蛋豆魚肉乳', icon: '🧀' },
+      { name: '無糖優格', category: '蛋豆魚肉乳', icon: '🥛' },
+      { name: '配方奶', category: '蛋豆魚肉乳', icon: '🍼' },
+      { name: '鮮奶', category: '蛋豆魚肉乳', icon: '🥛' },
+      { name: '羊肉', category: '蛋豆魚肉乳', icon: '🥩' },
+
+      // 🌿 海藻其他 (10項)
+      { name: '海帶芽/紫菜', category: '海藻其他', icon: '🌿' },
+      { name: '無鈉海苔', category: '海藻其他', icon: '🍘' },
+      { name: '黑芝麻粉', category: '海藻其他', icon: '🖤' },
+      { name: '白芝麻', category: '海藻其他', icon: '⚪' },
+      { name: '橄欖油', category: '海藻其他', icon: '🫒' },
+      { name: '亞麻仁油', category: '海藻其他', icon: '🍾' },
+      { name: '酪梨油', category: '海藻其他', icon: '🍾' },
+      { name: '高湯/雞湯', category: '海藻其他', icon: '🍲' },
+      { name: '昆布高湯', category: '海藻其他', icon: '🍲' },
+      { name: '枸杞', category: '海藻其他', icon: '🔴' }
     ];
 
     let appData = {
@@ -299,7 +410,12 @@
           const parsed = JSON.parse(saved);
           if (parsed.syncCode) appData.syncCode = parsed.syncCode;
           if (parsed.meals) appData.meals = parsed.meals;
-          if (parsed.foods) appData.foods = parsed.foods;
+          // 如果原本的食材少於 50 種，自動載入百項最新完整庫
+          if (parsed.foods && parsed.foods.length >= 50) {
+            appData.foods = parsed.foods;
+          } else {
+            appData.foods = DEFAULT_FOOD_DATABASE;
+          }
         } catch (e) {}
       }
       document.getElementById('syncCodeDisplay').innerText = appData.syncCode;
@@ -421,7 +537,6 @@
       }
     }
 
-    /* 渲染按月日曆：強化新食材黃色底色標籤 */
     function renderCalendar() {
       const year = calendarCurrentDate.getFullYear();
       const month = calendarCurrentDate.getMonth();
@@ -491,6 +606,8 @@
       if (activeLibraryCategory !== 'all') list = list.filter(f => f.category === activeLibraryCategory);
       if (searchKeyword) list = list.filter(f => f.name.toLowerCase().includes(searchKeyword));
 
+      document.getElementById('unlockedStatsText').innerText = `解鎖 ${triedIngredients.size} / ${appData.foods.length} 種`;
+
       grid.innerHTML = list.map(food => {
         const isTried = triedIngredients.has(food.name);
         return `
@@ -542,6 +659,11 @@
       else if (activePickerCategory === 'unlocked') filtered = filtered.filter(f => triedSet.has(f.name));
       else filtered = filtered.filter(f => f.category === activePickerCategory);
 
+      if (filtered.length === 0 && searchKey) {
+        container.innerHTML = `<button type="button" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-800" onclick="addCustomFood('${escapeHtml(searchKey)}')">+ 新增「${escapeHtml(searchKey)}」至食材庫</button>`;
+        return;
+      }
+
       container.innerHTML = filtered.map(food => {
         const isSelected = selectedMealIngredients.some(i => i.name === food.name);
         return `
@@ -551,6 +673,15 @@
           </button>
         `;
       }).join('');
+    }
+
+    function addCustomFood(name) {
+      if (!appData.foods.some(f => f.name === name)) {
+        appData.foods.push({ name: name, category: '海藻其他', icon: '🍲' });
+      }
+      saveData();
+      togglePickIngredient(name);
+      document.getElementById('pickerSearchInput').value = '';
     }
 
     function togglePickIngredient(name) {

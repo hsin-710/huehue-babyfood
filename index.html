@@ -140,7 +140,6 @@
             <span class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full font-bold" id="allergyStatsText">❌ 過敏 0 種</span>
           </div>
         </div>
-        <!-- 食材庫分類：加入「✨ 已解鎖」快捷篩選按鈕 -->
         <div id="libraryCategoryBar" class="flex items-center gap-1 overflow-x-auto pb-0.5 custom-scrollbar text-xs font-medium">
           <button onclick="filterLibraryCategory('unlocked')" id="libCatBtn_unlocked" class="px-2.5 py-1 rounded-lg bg-amber-500 text-white font-bold whitespace-nowrap shadow-xs">✨ 已解鎖</button>
           <button onclick="filterLibraryCategory('all')" id="libCatBtn_all" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">全部食材</button>
@@ -545,6 +544,7 @@
       }
     }
 
+    /* 渲染按月日曆：取消頓號相連，改為每一個食材獨立單一行垂直呈現 */
     function renderCalendar() {
       const year = calendarCurrentDate.getFullYear();
       const month = calendarCurrentDate.getMonth();
@@ -572,22 +572,26 @@
             const status = appData.foodStatus[ingName] || 'normal';
 
             if (status === 'allergy') {
-              return `<span class="bg-rose-500 text-black font-black px-1 py-0.2 rounded text-[8px] inline-flex items-center border border-rose-700 my-0.2">❌${escapeHtml(ingName)}</span>`;
+              return `<div class="w-full bg-rose-500 text-black font-black px-1 py-0.2 rounded text-[8px] flex items-center border border-rose-700">❌${escapeHtml(ingName)}</div>`;
             } else if (isFirstEverOccur) {
-              return `<span class="bg-amber-100 text-amber-900 border border-amber-300 font-bold px-1 py-0.2 rounded text-[8px] inline-flex items-center my-0.2"><span class="bg-emerald-600 text-white rounded px-0.5 mr-0.5 text-[7px]">新</span>${escapeHtml(ingName)}</span>`;
+              return `<div class="w-full bg-amber-100 text-amber-900 border border-amber-300 font-bold px-1 py-0.2 rounded text-[8px] flex items-center"><span class="bg-emerald-600 text-white rounded px-0.5 mr-0.5 text-[7px]">新</span>${escapeHtml(ingName)}</div>`;
             } else {
-              return `<span class="text-slate-800 font-medium text-[8px] inline-block my-0.2">${escapeHtml(ingName)}</span>`;
+              return `<div class="w-full bg-slate-50 text-slate-800 font-medium text-[8px] px-1 py-0.2 rounded border border-slate-100 truncate">${escapeHtml(ingName)}</div>`;
             }
-          }).join('、');
+          }).join('');
 
-          return `<div class="text-[8px] bg-slate-100 p-0.5 rounded border border-slate-200 flex flex-wrap items-center gap-0.5 leading-tight"><span class="font-bold text-slate-500">${m.type}:</span> ${ingsHtml}</div>`;
+          return `
+            <div class="bg-slate-100/80 p-1 rounded-lg border border-slate-200 space-y-0.5">
+              <div class="text-[8px] font-bold text-slate-500 pb-0.5 border-b border-slate-200/60">${m.type}</div>
+              <div class="space-y-0.5">${ingsHtml}</div>
+            </div>`;
         }).join('');
 
         const isToday = dateStr === new Date().toISOString().split('T')[0];
         grid.innerHTML += `
           <div onclick="jumpToDateFromCalendar('${dateStr}')" class="bg-white rounded-xl border ${isToday ? 'border-emerald-500 ring-2 ring-emerald-200' : 'border-slate-200'} p-1 min-h-[75px] h-auto flex flex-col justify-start cursor-pointer shadow-2xs">
             <div class="border-b border-slate-100 pb-0.5 mb-1"><span class="text-[9px] font-bold ${isToday ? 'bg-emerald-600 text-white rounded-full w-3.5 h-3.5 flex items-center justify-center' : 'text-slate-700'}">${d}</span></div>
-            <div class="space-y-0.5 w-full">${mealsListHtml}</div>
+            <div class="space-y-1 w-full">${mealsListHtml}</div>
           </div>`;
       }
     }
@@ -602,7 +606,6 @@
       switchView('daily');
     }
 
-    /* 渲染食材庫：支援「✨ 已解鎖」單獨檢視功能 */
     function renderLibrary() {
       const grid = document.getElementById('libraryGrid');
       const notFoundContainer = document.getElementById('libraryNotFoundContainer');
@@ -614,7 +617,6 @@
       let allergyCount = 0;
       Object.values(appData.foodStatus).forEach(s => { if (s === 'allergy') allergyCount++; });
 
-      // 更新按鈕選取高亮樣式
       const categories = ['unlocked', 'all', '穀物澱粉', '蔬菜菌菇', '水果', '蛋豆魚肉乳', '海藻其他'];
       categories.forEach(cat => {
         const btn = document.getElementById('libCatBtn_' + cat);

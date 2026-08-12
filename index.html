@@ -208,12 +208,12 @@
           </div>
 
           <div class="flex gap-1.5 overflow-x-auto pb-1 mb-2 custom-scrollbar text-xs">
-            <button type="button" onclick="switchPickerCategory('unlocked')" class="picker-tab active px-3 py-1.5 rounded-lg bg-amber-100 text-amber-900 font-bold whitespace-nowrap">✨ 已解鎖</button>
-            <button type="button" onclick="switchPickerCategory('穀物澱粉')" class="picker-tab px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap">🌾 穀物</button>
+            <button type="button" onclick="switchPickerCategory('穀物澱粉')" class="picker-tab active px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-bold whitespace-nowrap">🌾 穀物</button>
             <button type="button" onclick="switchPickerCategory('蔬菜菌菇')" class="picker-tab px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap">🥦 蔬菜</button>
             <button type="button" onclick="switchPickerCategory('水果')" class="picker-tab px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap">🍎 水果</button>
             <button type="button" onclick="switchPickerCategory('蛋豆魚肉乳')" class="picker-tab px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap">🥩 蛋白</button>
             <button type="button" onclick="switchPickerCategory('海藻其他')" class="picker-tab px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap">🌿 其他</button>
+            <button type="button" onclick="switchPickerCategory('unlocked')" class="picker-tab px-3 py-1.5 rounded-lg bg-amber-100 text-amber-900 font-bold whitespace-nowrap">✨ 已解鎖</button>
           </div>
 
           <div id="pickerChipsContainer" class="flex flex-wrap gap-2 p-3 bg-slate-50 rounded-2xl border border-slate-200 max-h-48 overflow-y-auto custom-scrollbar"></div>
@@ -257,7 +257,6 @@
   <!-- JAVASCRIPT LOGIC -->
   <script>
     const DEFAULT_FOOD_DATABASE = [
-      // 🌾 穀物澱粉 (20項)
       { name: '白米', category: '穀物澱粉', icon: '🍚' },
       { name: '胚芽米', category: '穀物澱粉', icon: '🌾' },
       { name: '糙米', category: '穀物澱粉', icon: '🌾' },
@@ -278,8 +277,6 @@
       { name: '吐司/麵包', category: '穀物澱粉', icon: '🍞' },
       { name: '饅頭', category: '穀物澱粉', icon: '🥯' },
       { name: '西谷米', category: '穀物澱粉', icon: '⚪' },
-
-      // 🥦 蔬菜菌菇 (35項)
       { name: '高麗菜', category: '蔬菜菌菇', icon: '🥬' },
       { name: '青花菜', category: '蔬菜菌菇', icon: '🥦' },
       { name: '花菜', category: '蔬菜菌菇', icon: '🥦' },
@@ -315,8 +312,6 @@
       { name: '木耳', category: '蔬菜菌菇', icon: '🍄' },
       { name: '牛蒡', category: '蔬菜菌菇', icon: '🥕' },
       { name: '蓮藕', category: '蔬菜菌菇', icon: '🥗' },
-
-      // 🍎 水果類 (25項)
       { name: '蘋果', category: '水果', icon: '🍎' },
       { name: '香蕉', category: '水果', icon: '🍌' },
       { name: '水梨', category: '水果', icon: '🍐' },
@@ -342,8 +337,6 @@
       { name: '棗子', category: '水果', icon: '🍈' },
       { name: '柿子', category: '水果', icon: '🍊' },
       { name: '荔枝/龍眼', category: '水果', icon: '🍒' },
-
-      // 🥩 蛋豆魚肉乳 (25項)
       { name: '蛋黃', category: '蛋豆魚肉乳', icon: '🍳' },
       { name: '蛋白', category: '蛋豆魚肉乳', icon: '🥚' },
       { name: '全蛋', category: '蛋豆魚肉乳', icon: '🥚' },
@@ -369,8 +362,6 @@
       { name: '配方奶', category: '蛋豆魚肉乳', icon: '🍼' },
       { name: '鮮奶', category: '蛋豆魚肉乳', icon: '🥛' },
       { name: '羊肉', category: '蛋豆魚肉乳', icon: '🥩' },
-
-      // 🌿 海藻其他 (10項)
       { name: '海帶芽/紫菜', category: '海藻其他', icon: '🌿' },
       { name: '無鈉海苔', category: '海藻其他', icon: '🍘' },
       { name: '黑芝麻粉', category: '海藻其他', icon: '🖤' },
@@ -390,7 +381,7 @@
     };
 
     let selectedMealIngredients = [];
-    let activePickerCategory = 'unlocked';
+    let activePickerCategory = '穀物澱粉';
     let activeLibraryCategory = 'all';
     let calendarCurrentDate = new Date();
 
@@ -427,10 +418,8 @@
     function shiftDailyDate(offsetDays) {
       const input = document.getElementById('dailyDateFilter');
       const currentVal = input.value || new Date().toISOString().split('T')[0];
-      
       const dateObj = new Date(currentVal);
       dateObj.setDate(dateObj.getDate() + offsetDays);
-      
       input.value = dateObj.toISOString().split('T')[0];
       renderDailyCards();
     }
@@ -688,11 +677,10 @@
       if (idx >= 0) {
         selectedMealIngredients.splice(idx, 1);
       } else {
-        // 檢查該食材是否曾經出現在歷史餐點中
+        // 比對歷史餐點紀錄：若歷史紀錄中沒有出現過，預設自動設為新食材 (isNew: true)
         const isEverTried = appData.meals.some(m => 
           (m.ingredients || []).some(i => (typeof i === 'string' ? i : i.name) === name)
         );
-        // 如果從未食用過，預設自動標記為新食材 (isNew: true)
         selectedMealIngredients.push({ name: name, isNew: !isEverTried });
       }
       renderSelectedIngredientsList();
@@ -705,8 +693,8 @@
       container.innerHTML = selectedMealIngredients.map((item, index) => `
         <div class="bg-white border border-slate-200 rounded-xl p-2.5 flex items-center justify-between text-xs">
           <span class="font-bold text-slate-800">${escapeHtml(item.name)}</span>
-          <button type="button" onclick="toggleIngredientNewFlag(${index})" class="px-2.5 py-1 rounded-lg font-bold ${item.isNew ? 'bg-amber-400 text-slate-900' : 'bg-slate-100 text-slate-500'}">
-            ${item.isNew ? '新食材（點擊可取消）' : '+ 標為新食材'}
+          <button type="button" onclick="toggleIngredientNewFlag(${index})" class="px-2.5 py-1 rounded-lg font-bold ${item.isNew ? 'bg-amber-400 text-slate-900 shadow-sm' : 'bg-slate-100 text-slate-500'}">
+            ${item.isNew ? '✨ 新食材' : '+ 標為新食材'}
           </button>
         </div>
       `).join('');

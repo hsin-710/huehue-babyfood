@@ -59,15 +59,15 @@
         </div>
       </div>
 
-      <!-- 視圖切換按鈕 -->
+      <!-- 視圖切換按鈕（統一名稱：按日 / 按月） -->
       <div class="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-medium">
-        <button id="viewBtnDaily" onclick="switchView('daily')" class="px-2.5 sm:px-4 py-1 rounded-lg transition-all flex items-center gap-1 bg-white shadow-xs text-emerald-700 font-semibold">
-          <i class="fa-solid text-[10px] fa-list-ul"></i> 按日卡片
+        <button id="viewBtnDaily" onclick="switchView('daily')" class="px-3 sm:px-4 py-1 rounded-lg transition-all flex items-center gap-1 bg-white shadow-xs text-emerald-700 font-semibold">
+          <i class="fa-solid text-[10px] fa-list-ul"></i> 按日
         </button>
-        <button id="viewBtnCalendar" onclick="switchView('calendar')" class="px-2.5 sm:px-4 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900">
-          <i class="fa-regular text-[10px] fa-calendar-days"></i> 月日曆
+        <button id="viewBtnCalendar" onclick="switchView('calendar')" class="px-3 sm:px-4 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900">
+          <i class="fa-regular text-[10px] fa-calendar-days"></i> 按月
         </button>
-        <button id="viewBtnLibrary" onclick="switchView('library')" class="px-2.5 sm:px-4 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900">
+        <button id="viewBtnLibrary" onclick="switchView('library')" class="px-3 sm:px-4 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900">
           <i class="fa-solid text-[10px] fa-carrot"></i> 食材庫 <span id="libraryCountBadge" class="bg-emerald-100 text-emerald-800 text-[9px] px-1.5 py-0.2 rounded-full font-bold">0</span>
         </button>
       </div>
@@ -96,7 +96,7 @@
   <!-- 主要內容區 -->
   <main class="max-w-7xl mx-auto px-2.5 sm:px-6 pt-2.5 flex-1 w-full">
 
-    <!-- 1. 按日卡片視圖 (極致手機直螢幕優化版) -->
+    <!-- 1. 按日視圖 -->
     <section id="viewDaily" class="space-y-2.5">
       <div class="flex items-center justify-between bg-white px-3 py-2 rounded-2xl border border-slate-200 shadow-xs flex-wrap gap-1.5">
         <div class="flex items-center gap-1.5 flex-wrap">
@@ -115,7 +115,7 @@
       <div id="dailyCardsContainer" class="space-y-2"></div>
     </section>
 
-    <!-- 2. 按月日曆視圖 -->
+    <!-- 2. 按月視圖 -->
     <section id="viewCalendar" class="hidden space-y-3">
       <div class="bg-white p-3 sm:p-5 rounded-2xl border border-slate-200 shadow-xs">
         <div class="flex items-center justify-between mb-3">
@@ -393,7 +393,6 @@
       renderDailyCards();
     }
 
-    /* 渲染按日卡片：改為橫向平鋪（Chip）佈局，高度超級節省，完美符合手機直螢幕 */
     function renderDailyCards() {
       const container = document.getElementById('dailyCardsContainer');
       const targetDate = document.getElementById('dailyDateFilter').value;
@@ -450,7 +449,6 @@
               </div>
             </div>
 
-            <!-- 食材改為橫向平鋪組合 -->
             <div class="flex flex-wrap gap-1.5">${ingredientsChipsHtml}</div>
 
             ${(meal.texture || meal.notes) ? `
@@ -469,14 +467,22 @@
       document.getElementById('viewCalendar').classList.add('hidden');
       document.getElementById('viewLibrary').classList.add('hidden');
 
+      // 更新按鈕選取樣式
+      document.getElementById('viewBtnDaily').className = "px-3 sm:px-4 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900";
+      document.getElementById('viewBtnCalendar').className = "px-3 sm:px-4 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900";
+      document.getElementById('viewBtnLibrary').className = "px-3 sm:px-4 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900";
+
       if (viewName === 'daily') {
         document.getElementById('viewDaily').classList.remove('hidden');
+        document.getElementById('viewBtnDaily').className = "px-3 sm:px-4 py-1 rounded-lg transition-all flex items-center gap-1 bg-white shadow-xs text-emerald-700 font-semibold";
         renderDailyCards();
       } else if (viewName === 'calendar') {
         document.getElementById('viewCalendar').classList.remove('hidden');
+        document.getElementById('viewBtnCalendar').className = "px-3 sm:px-4 py-1 rounded-lg transition-all flex items-center gap-1 bg-white shadow-xs text-emerald-700 font-semibold";
         renderCalendar();
       } else if (viewName === 'library') {
         document.getElementById('viewLibrary').classList.remove('hidden');
+        document.getElementById('viewBtnLibrary').className = "px-3 sm:px-4 py-1 rounded-lg transition-all flex items-center gap-1 bg-white shadow-xs text-emerald-700 font-semibold";
         renderLibrary();
       }
     }

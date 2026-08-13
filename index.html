@@ -54,15 +54,16 @@
       <div class="flex items-center gap-2">
         <span class="text-xl sm:text-2xl">👶</span>
         <div>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 flex-wrap">
             <h1 class="font-bold text-base sm:text-lg text-slate-800 leading-tight">Hue Hue 試敏日誌</h1>
+            <!-- 精準計算的月齡與天數標籤 -->
             <span id="babyAgeBadge" class="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-extrabold shadow-2xs">算月中...</span>
           </div>
           <p class="text-[9px] sm:text-xs text-slate-500">雲端同步 ‧ 全家共享版</p>
         </div>
       </div>
 
-      <!-- 視圖切換按鈕 (加入「📊 分析」) -->
+      <!-- 視圖切換按鈕 -->
       <div class="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-medium overflow-x-auto custom-scrollbar">
         <button id="viewBtnDaily" onclick="switchView('daily')" class="px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 bg-white shadow-xs text-emerald-700 font-semibold whitespace-nowrap">
           <i class="fa-solid text-[10px] fa-list-ul"></i> 按日
@@ -136,24 +137,21 @@
       </div>
     </section>
 
-    <!-- 3. 紀錄分析視圖 (仿截圖質感風格) -->
+    <!-- 3. 紀錄分析視圖 -->
     <section id="viewAnalysis" class="hidden space-y-3">
       <div class="bg-slate-900 text-white p-4 sm:p-6 rounded-3xl space-y-5 shadow-xl border border-slate-800">
         
-        <!-- 週區間切換 -->
         <div class="flex items-center justify-between border-b border-slate-800 pb-3">
           <button onclick="shiftAnalysisWeek(-1)" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-chevron-left"></i></button>
           <span id="analysisWeekTitle" class="font-extrabold text-base sm:text-lg tracking-wide text-amber-400">7/13 - 7/19</span>
           <button onclick="shiftAnalysisWeek(1)" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-chevron-right"></i></button>
         </div>
 
-        <!-- 區塊一：副食品種類分析 -->
         <div class="space-y-3">
           <h3 class="font-bold text-sm sm:text-base text-slate-200 flex items-center gap-2">
             <span>🥗</span> 副食品種類分析
           </h3>
           <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700/60 flex items-center justify-between flex-wrap gap-4">
-            <!-- 左側圓環圖 -->
             <div class="relative w-28 h-28 flex items-center justify-center mx-auto sm:mx-0">
               <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
                 <path class="text-slate-700" stroke-width="3.8" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
@@ -166,12 +164,10 @@
               </div>
             </div>
 
-            <!-- 右側統計清單 -->
             <div id="analysisCategoryList" class="flex-1 space-y-2 min-w-[160px]"></div>
           </div>
         </div>
 
-        <!-- 區塊二：關鍵營養素卡片 -->
         <div class="space-y-3 pt-2">
           <h3 class="font-bold text-sm sm:text-base text-slate-200 flex items-center gap-2">
             <span>⚡</span> 關鍵營養素估算
@@ -457,34 +453,47 @@
       initFirebaseListener();
     };
 
+    /* 精準計算小朋友年齡（格式：○個月○天 ‧ 出生第○天） */
     function calculateBabyAge() {
-      const birthDate = new Date('2026-02-17');
+      const birthDate = new Date(2026, 1, 17); // 2026-02-17
       const today = new Date();
 
-      if (today < birthDate) {
+      // 將時間重置回凌晨0點進行純日期計算
+      const bDate = new Date(birthDate.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+      const tDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+      if (tDate < bDate) {
         document.getElementById('babyAgeBadge').innerText = "尚未出生";
         return;
       }
 
-      let months = (today.getFullYear() - birthDate.getFullYear()) * 12 + (today.getMonth() - birthDate.getMonth());
-      let tempDate = new Date(birthDate);
-      tempDate.setMonth(tempDate.getMonth() + months);
+      // 1. 計算出生累積總天數
+      const totalDays = Math.floor((tDate - bDate) / (1000 * 60 * 60 * 24)) + 1;
 
-      if (tempDate > today) {
+      // 2. 計算精準月天數 (Months & Days)
+      let years = tDate.getFullYear() - bDate.getFullYear();
+      let months = tDate.getMonth() - bDate.getMonth();
+      let days = tDate.getDate() - bDate.getDate();
+
+      if (days < 0) {
         months--;
-        tempDate = new Date(birthDate);
-        tempDate.setMonth(tempDate.getMonth() + months);
+        // 上個月的最後一天日期 (得知上個月有幾天)
+        const prevMonthLastDay = new Date(tDate.getFullYear(), tDate.getMonth(), 0).getDate();
+        days += prevMonthLastDay;
       }
 
-      const diffDays = Math.floor((today - tempDate) / (1000 * 60 * 60 * 24));
-      const weeks = Math.floor(diffDays / 7);
+      if (months < 0) {
+        years--;
+        months += 12;
+      }
 
-      let text = '';
-      if (months > 0) text += `${months} 個月 `;
-      if (weeks > 0) text += `${weeks} 週`;
-      if (!text) text = "未滿週";
+      const totalMonths = years * 12 + months;
 
-      document.getElementById('babyAgeBadge').innerText = text.trim();
+      let ageStr = '';
+      if (totalMonths > 0) ageStr += `${totalMonths} 個月 `;
+      ageStr += `${days} 天`;
+
+      document.getElementById('babyAgeBadge').innerText = `${ageStr} ‧ 出生第 ${totalDays} 天`;
     }
 
     function startVoiceRecognition(inputId, callback) {
@@ -767,7 +776,6 @@
       switchView('daily');
     }
 
-    /* 渲染分析頁面 (副食品種類分析 + 關鍵營養素估算) */
     function shiftAnalysisWeek(delta) {
       analysisWeekOffset += delta;
       renderAnalysis();
@@ -797,7 +805,7 @@
       const categoryWeights = { '穀物澱粉': 0, '蔬菜菌菇': 0, '水果': 0, '蛋豆魚肉乳': 0, '海藻其他': 0 };
 
       weekMeals.forEach(m => {
-        const w = parseFloat(m.weight) || 50; // 若未填寫預設 50g
+        const w = parseFloat(m.weight) || 50;
         const ings = m.ingredients || [];
         if (ings.length > 0) {
           const portion = w / ings.length;
@@ -813,15 +821,13 @@
 
       document.getElementById('analysisTotalWeight').innerText = totalWeight.toFixed(0);
 
-      // 圓環比例繪製
       const grainPct = totalWeight > 0 ? (categoryWeights['穀物澱粉'] / totalWeight) * 100 : 0;
       const vegPct = totalWeight > 0 ? (categoryWeights['蔬菜菌菇'] / totalWeight) * 100 : 0;
 
       document.getElementById('piePathGrain').setAttribute('stroke-dasharray', `${grainPct}, 100`);
       document.getElementById('piePathVeg').setAttribute('stroke-dasharray', `${vegPct}, 100`);
-      document.getElementById('piePathVeg').setAttribute('stroke-dashoffset`, `-${grainPct}`);
+      document.getElementById('piePathVeg').setAttribute('stroke-dashoffset', `-${grainPct}`);
 
-      // 右側分類列表
       const catListContainer = document.getElementById('analysisCategoryList');
       let catHtml = '';
       const catIcons = { '穀物澱粉': '🍚', '蔬菜菌菇': '🥬', '水果': '🍎', '蛋豆魚肉乳': '🥩', '海藻其他': '🌿' };
@@ -841,7 +847,6 @@
       });
       catListContainer.innerHTML = catHtml || `<div class="text-xs text-slate-400">本週尚無飲食紀錄</div>`;
 
-      // 關鍵營養素估算 (根據克數換算)
       document.getElementById('nutriFiber').innerText = (totalWeight * 0.035).toFixed(1);
       document.getElementById('nutriProtein').innerText = (totalWeight * 0.041).toFixed(1);
       document.getElementById('nutriCalcium').innerText = (totalWeight * 0.66).toFixed(1);

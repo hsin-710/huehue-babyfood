@@ -51,10 +51,14 @@
   <!-- 頂部導覽列 -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
     <div class="max-w-7xl mx-auto px-2.5 sm:px-6 py-2 flex items-center justify-between flex-wrap gap-1.5">
-      <div class="flex items-center gap-1.5">
+      <div class="flex items-center gap-2">
         <span class="text-xl sm:text-2xl">👶</span>
         <div>
-          <h1 class="font-bold text-base sm:text-lg text-slate-800 leading-tight">Hue Hue 試敏日誌</h1>
+          <div class="flex items-center gap-2">
+            <h1 class="font-bold text-base sm:text-lg text-slate-800 leading-tight">Hue Hue 試敏日誌</h1>
+            <!-- 動態計算的小朋友月齡標籤 -->
+            <span id="babyAgeBadge" class="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-extrabold shadow-2xs">算月中...</span>
+          </div>
           <p class="text-[9px] sm:text-xs text-slate-500">雲端同步 ‧ 全家共享版</p>
         </div>
       </div>
@@ -123,8 +127,8 @@
           <h2 id="calendarMonthTitle" class="text-base sm:text-xl font-extrabold text-slate-800">2026 年 8 月</h2>
           <button onclick="changeMonth(1)" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 text-xs font-bold transition-all">下個月 <i class="fa-solid fa-chevron-right"></i></button>
         </div>
-        <div class="grid grid-cols-7 gap-1 text-center font-bold text-slate-600 text-xs py-1.5 border-b border-slate-200 bg-slate-50/80 rounded-t-xl min-w-[320px]">
-          <div class="text-rose-600">日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div class="text-emerald-700">六</div>
+        <div class="grid grid-cols-7 gap-1 text-center font-bold text-slate-400 text-xs py-1.5 border-b border-slate-100 min-w-[320px]">
+          <div>週日</div><div>週一</div><div>週二</div><div>週三</div><div>週四</div><div>週五</div><div>週六</div>
         </div>
         <div id="calendarGrid" class="grid grid-cols-7 gap-1 mt-1.5 min-w-[320px] items-start"></div>
       </div>
@@ -149,9 +153,15 @@
           <button onclick="filterLibraryCategory('蛋豆魚肉乳')" id="libCatBtn_蛋豆魚肉乳" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🥩 蛋白</button>
           <button onclick="filterLibraryCategory('海藻其他')" id="libCatBtn_海藻其他" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🌿 其他</button>
         </div>
-        <div class="relative">
-          <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2 text-slate-400 text-[10px]"></i>
-          <input type="text" id="librarySearchInput" oninput="renderLibrary()" placeholder="搜尋食材名稱..." class="w-full pl-7 pr-2.5 py-1 border border-slate-300 rounded-lg text-xs bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500">
+
+        <div class="relative flex items-center gap-1">
+          <div class="relative flex-1">
+            <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2 text-slate-400 text-[10px]"></i>
+            <input type="text" id="librarySearchInput" oninput="renderLibrary()" placeholder="搜尋食材名稱..." class="w-full pl-7 pr-2.5 py-1 border border-slate-300 rounded-lg text-xs bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500">
+          </div>
+          <button type="button" onclick="startVoiceRecognition('librarySearchInput', renderLibrary)" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 p-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1" title="語音搜尋食材">
+            🎤 語音
+          </button>
         </div>
       </div>
 
@@ -230,9 +240,15 @@
 
         <div>
           <label class="block text-[11px] font-bold text-slate-700 mb-1">選擇食用食材 / 食物組合</label>
-          <div class="relative mb-1.5">
-            <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2 text-slate-400 text-[10px]"></i>
-            <input type="text" id="pickerSearchInput" oninput="renderPickerChips()" placeholder="🔍 關鍵字搜尋..." class="w-full pl-7 pr-2.5 py-1 border border-slate-300 rounded-lg text-xs bg-slate-50 focus:bg-white focus:ring-1 focus:ring-emerald-500">
+
+          <div class="relative flex items-center gap-1 mb-1.5">
+            <div class="relative flex-1">
+              <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2 text-slate-400 text-[10px]"></i>
+              <input type="text" id="pickerSearchInput" oninput="renderPickerChips()" placeholder="🔍 關鍵字搜尋..." class="w-full pl-7 pr-2.5 py-1 border border-slate-300 rounded-lg text-xs bg-slate-50 focus:bg-white focus:ring-1 focus:ring-emerald-500">
+            </div>
+            <button type="button" onclick="startVoiceRecognition('pickerSearchInput', renderPickerChips)" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 p-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1" title="語音搜尋食材">
+              🎤 語音
+            </button>
           </div>
 
           <div class="flex gap-1 overflow-x-auto pb-0.5 mb-1.5 custom-scrollbar text-xs">
@@ -362,9 +378,76 @@
       renderPickerChips();
       renderLibrary();
       updateBadges();
+      calculateBabyAge();
 
       initFirebaseListener();
     };
+
+    /* 計算小朋友目前多大 (生日: 2026-02-17) */
+    function calculateBabyAge() {
+      const birthDate = new Date('2026-02-17');
+      const today = new Date();
+
+      if (today < birthDate) {
+        document.getElementById('babyAgeBadge').innerText = "尚未出生";
+        return;
+      }
+
+      let months = (today.getFullYear() - birthDate.getFullYear()) * 12 + (today.getMonth() - birthDate.getMonth());
+      let tempDate = new Date(birthDate);
+      tempDate.setMonth(tempDate.getMonth() + months);
+
+      if (tempDate > today) {
+        months--;
+        tempDate = new Date(birthDate);
+        tempDate.setMonth(tempDate.getMonth() + months);
+      }
+
+      const diffDays = Math.floor((today - tempDate) / (1000 * 60 * 60 * 24));
+      const weeks = Math.floor(diffDays / 7);
+
+      let text = '';
+      if (months > 0) text += `${months} 個月 `;
+      if (weeks > 0) text += `${weeks} 週`;
+      if (!text) text = "未滿週";
+
+      document.getElementById('babyAgeBadge').innerText = text.trim();
+    }
+
+    function startVoiceRecognition(inputId, callback) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        alert("您的瀏覽器暫不支援語音辨識，請手動輸入文字！");
+        return;
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'zh-TW';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      const inputElem = document.getElementById(inputId);
+      const originalPlaceholder = inputElem.placeholder;
+      inputElem.placeholder = "聆聽中，請開口講話...";
+
+      recognition.start();
+
+      recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript.replace(/[。，、]/g, '').trim();
+        inputElem.value = transcript;
+        inputElem.placeholder = originalPlaceholder;
+        if (callback) callback();
+      };
+
+      recognition.onerror = function(event) {
+        alert("語音辨識失敗，請再試一次！");
+        inputElem.placeholder = originalPlaceholder;
+      };
+
+      recognition.onend = function() {
+        inputElem.placeholder = originalPlaceholder;
+      };
+    }
 
     function getEarliestDateMap() {
       const map = {};
@@ -544,7 +627,6 @@
       }
     }
 
-    /* 渲染按月日曆：取消頓號相連，改為每一個食材獨立單一行垂直呈現 */
     function renderCalendar() {
       const year = calendarCurrentDate.getFullYear();
       const month = calendarCurrentDate.getMonth();
@@ -558,40 +640,41 @@
       const earliestMap = getEarliestDateMap();
 
       for (let i = 0; i < firstDay; i++) {
-        grid.innerHTML += `<div class="bg-slate-50/40 rounded-xl min-h-[75px]"></div>`;
+        grid.innerHTML += `<div class="min-h-[65px]"></div>`;
       }
 
       for (let d = 1; d <= daysInMonth; d++) {
         const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         const dayMeals = appData.meals.filter(m => m.date === dateStr);
 
-        let mealsListHtml = dayMeals.map(m => {
-          const ingsHtml = (m.ingredients || []).map(i => {
+        const dayIngredients = [];
+        const seenSet = new Set();
+
+        dayMeals.forEach(m => {
+          (m.ingredients || []).forEach(i => {
             const ingName = typeof i === 'string' ? i : i.name;
-            const isFirstEverOccur = earliestMap[ingName] === dateStr;
-            const status = appData.foodStatus[ingName] || 'normal';
-
-            if (status === 'allergy') {
-              return `<div class="w-full bg-rose-500 text-black font-black px-1 py-0.2 rounded text-[8px] flex items-center border border-rose-700">❌${escapeHtml(ingName)}</div>`;
-            } else if (isFirstEverOccur) {
-              return `<div class="w-full bg-amber-100 text-amber-900 border border-amber-300 font-bold px-1 py-0.2 rounded text-[8px] flex items-center"><span class="bg-emerald-600 text-white rounded px-0.5 mr-0.5 text-[7px]">新</span>${escapeHtml(ingName)}</div>`;
-            } else {
-              return `<div class="w-full bg-slate-50 text-slate-800 font-medium text-[8px] px-1 py-0.2 rounded border border-slate-100 truncate">${escapeHtml(ingName)}</div>`;
+            if (!seenSet.has(ingName)) {
+              seenSet.add(ingName);
+              dayIngredients.push(ingName);
             }
-          }).join('');
+          });
+        });
 
-          return `
-            <div class="bg-slate-100/80 p-1 rounded-lg border border-slate-200 space-y-0.5">
-              <div class="text-[8px] font-bold text-slate-500 pb-0.5 border-b border-slate-200/60">${m.type}</div>
-              <div class="space-y-0.5">${ingsHtml}</div>
-            </div>`;
+        let ingredientsChipsHtml = dayIngredients.map(ingName => {
+          const status = appData.foodStatus[ingName] || 'normal';
+
+          if (status === 'allergy') {
+            return `<div class="w-full bg-rose-600 text-black font-black px-1.5 py-0.5 rounded-lg text-[9px] text-center shadow-2xs border border-rose-800 truncate">❌ ${escapeHtml(ingName)}</div>`;
+          } else {
+            return `<div class="w-full bg-slate-100/90 text-slate-800 font-bold px-1 py-0.5 rounded-lg text-[9px] text-center border border-slate-200/80 truncate shadow-2xs">${escapeHtml(ingName)}</div>`;
+          }
         }).join('');
 
         const isToday = dateStr === new Date().toISOString().split('T')[0];
         grid.innerHTML += `
-          <div onclick="jumpToDateFromCalendar('${dateStr}')" class="bg-white rounded-xl border ${isToday ? 'border-emerald-500 ring-2 ring-emerald-200' : 'border-slate-200'} p-1 min-h-[75px] h-auto flex flex-col justify-start cursor-pointer shadow-2xs">
-            <div class="border-b border-slate-100 pb-0.5 mb-1"><span class="text-[9px] font-bold ${isToday ? 'bg-emerald-600 text-white rounded-full w-3.5 h-3.5 flex items-center justify-center' : 'text-slate-700'}">${d}</span></div>
-            <div class="space-y-1 w-full">${mealsListHtml}</div>
+          <div onclick="jumpToDateFromCalendar('${dateStr}')" class="rounded-2xl ${isToday ? 'bg-emerald-50/50 border-2 border-emerald-500' : 'bg-white border border-slate-100'} p-1 min-h-[65px] h-auto flex flex-col items-center justify-start cursor-pointer transition-all hover:border-emerald-300">
+            <span class="text-xs sm:text-sm font-black text-slate-800 mb-1 ${isToday ? 'text-emerald-700 font-extrabold' : ''}">${d}</span>
+            <div class="space-y-1 w-full">${ingredientsChipsHtml}</div>
           </div>`;
       }
     }

@@ -67,7 +67,6 @@
         <div>
           <div class="flex items-center gap-2 flex-wrap">
             <h1 class="font-bold text-base sm:text-lg text-slate-800 leading-tight">Hue Hue 試敏日誌</h1>
-            <!-- 動態計算的小朋友月齡標籤 -->
             <span id="babyAgeBadge" class="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-extrabold shadow-2xs">算月中...</span>
           </div>
           <p class="text-[9px] sm:text-xs text-slate-500">雲端同步 ‧ 全家共享版</p>
@@ -292,7 +291,7 @@
       <form id="mealForm" onsubmit="handleMealSubmit(event)" class="p-3.5 sm:p-5 space-y-3">
         <input type="hidden" id="editingMealId" value="">
 
-        <!-- 時間選擇器（含滾動/鍵盤輸入即時自動對應 上午/下午） -->
+        <!-- 時間選擇器 -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-2 bg-slate-50 p-2.5 rounded-2xl border border-slate-200/80">
           <div>
             <label class="block text-[11px] font-bold text-emerald-800 mb-0.5">⏰ 食用時間</label>
@@ -465,7 +464,6 @@
       initFirebaseListener();
     };
 
-    /* 根據滾動/調整的時間即時切換 上午/下午 餐別 */
     function autoUpdateMealTypeByTime() {
       const timeVal = document.getElementById('mealTime').value;
       if (!timeVal) return;
@@ -738,7 +736,6 @@
       }
     }
 
-    /* 渲染按月日曆：分類莫蘭迪柔和配色 + 首次嘗試顯眼標註 */
     function renderCalendar() {
       const year = calendarCurrentDate.getFullYear();
       const month = calendarCurrentDate.getMonth();
@@ -988,8 +985,11 @@
       appData.foods.push({ name: cleanName, category: category, icon: icon });
       saveData();
       
+      // 新增完成後自動清空搜尋欄
       document.getElementById('librarySearchInput').value = '';
+      document.getElementById('pickerSearchInput').value = '';
       renderLibrary();
+      renderPickerChips();
       alert(`已成功新增「${cleanName}」至【${category}】！`);
     }
 
@@ -1068,6 +1068,7 @@
         selectedMealIngredients = [];
       }
 
+      document.getElementById('pickerSearchInput').value = '';
       renderSelectedIngredientsList();
       renderPickerChips();
       document.getElementById('mealModal').classList.remove('hidden');
@@ -1135,6 +1136,8 @@
             selectedMealIngredients.push({ name: ingName });
           }
         });
+        // 套用組合後自動清空搜尋欄
+        document.getElementById('pickerSearchInput').value = '';
         renderSelectedIngredientsList();
         renderPickerChips();
       }
@@ -1155,6 +1158,7 @@
         });
         saveData();
         activePickerCategory = 'combo';
+        document.getElementById('pickerSearchInput').value = '';
         renderPickerChips();
         alert(`已成功建立「${comboName.trim()}」食物組合！`);
       }
@@ -1168,6 +1172,7 @@
       }
     }
 
+    /* 選取/取消選取食材後，自動清空搜尋欄並重置顯示 */
     function togglePickIngredient(name) {
       const idx = selectedMealIngredients.findIndex(i => i.name === name);
       if (idx >= 0) {
@@ -1175,6 +1180,8 @@
       } else {
         selectedMealIngredients.push({ name: name });
       }
+      // 選取後自動清空搜尋欄
+      document.getElementById('pickerSearchInput').value = '';
       renderSelectedIngredientsList();
       renderPickerChips();
     }

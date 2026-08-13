@@ -213,7 +213,7 @@
       </div>
     </section>
 
-    <!-- 4. 食材庫視圖 -->
+    <!-- 4. 食材庫視圖 (含食用次數統計) -->
     <section id="viewLibrary" class="hidden space-y-2.5">
       <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-xs space-y-2">
         <div class="flex items-center justify-between flex-wrap gap-1.5">
@@ -224,7 +224,8 @@
           </div>
         </div>
         <div id="libraryCategoryBar" class="flex items-center gap-1 overflow-x-auto pb-0.5 custom-scrollbar text-xs font-medium">
-          <button onclick="filterLibraryCategory('unlocked')" id="libCatBtn_unlocked" class="px-2.5 py-1 rounded-lg bg-amber-500 text-white font-bold whitespace-nowrap shadow-xs">✨ 已解鎖</button>
+          <button onclick="filterLibraryCategory('countSort')" id="libCatBtn_countSort" class="px-2.5 py-1 rounded-lg bg-amber-500 text-white font-bold whitespace-nowrap shadow-xs">🔥 食用次數榜</button>
+          <button onclick="filterLibraryCategory('unlocked')" id="libCatBtn_unlocked" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">✨ 已解鎖</button>
           <button onclick="filterLibraryCategory('all')" id="libCatBtn_all" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">全部食材</button>
           <button onclick="filterLibraryCategory('穀物澱粉')" id="libCatBtn_穀物澱粉" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🌾 穀物</button>
           <button onclick="filterLibraryCategory('蔬菜菌菇')" id="libCatBtn_蔬菜菌菇" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🥦 蔬菜</button>
@@ -449,7 +450,7 @@
     let appData = { syncCode: 'huehue', meals: [], foods: DEFAULT_FOOD_DATABASE, combos: DEFAULT_COMBOS, foodStatus: {} };
     let selectedMealIngredients = [];
     let activePickerCategory = 'combo';
-    let activeLibraryCategory = 'unlocked';
+    let activeLibraryCategory = 'countSort';
     let calendarCurrentDate = new Date();
     let analysisWeekOffset = 0;
 
@@ -563,6 +564,18 @@
         });
       });
       return map;
+    }
+
+    /* 全局計算每個食材吃過的總次數 */
+    function getIngredientCountMap() {
+      const countMap = {};
+      appData.meals.forEach(m => {
+        (m.ingredients || []).forEach(i => {
+          const ingName = typeof i === 'string' ? i : i.name;
+          countMap[ingName] = (countMap[ingName] || 0) + 1;
+        });
+      });
+      return countMap;
     }
 
     function initFirebaseListener() {
@@ -883,23 +896,24 @@
       document.getElementById('nutriVitC').innerText = (totalWeight * 0.28).toFixed(1);
     }
 
+    /* 渲染食材庫：加入「食用次數統計」與「食用次數榜」排序功能 */
     function renderLibrary() {
       const grid = document.getElementById('libraryGrid');
       const notFoundContainer = document.getElementById('libraryNotFoundContainer');
       const searchKeyword = document.getElementById('librarySearchInput').value.trim().toLowerCase();
 
-      const triedIngredients = new Set();
-      appData.meals.forEach(m => (m.ingredients || []).forEach(i => triedIngredients.add(typeof i === 'string' ? i : i.name)));
+      const countMap = getIngredientCountMap();
+      const triedIngredients = new Set(Object.keys(countMap));
 
       let allergyCount = 0;
       Object.values(appData.foodStatus).forEach(s => { if (s === 'allergy') allergyCount++; });
 
-      const categories = ['unlocked', 'all', '穀物澱粉', '蔬菜菌菇', '水果', '蛋豆魚肉乳', '海藻其他'];
+      const categories = ['countSort', 'unlocked', 'all', '穀物澱粉', '蔬菜菌菇', '水果', '蛋豆魚肉乳', '海藻其他'];
       categories.forEach(cat => {
         const btn = document.getElementById('libCatBtn_' + cat);
         if (btn) {
           if (cat === activeLibraryCategory) {
-            btn.className = cat === 'unlocked' 
+            btn.className = (cat === 'countSort' || cat === 'unlocked')
               ? "px-2.5 py-1 rounded-lg bg-amber-500 text-white font-bold whitespace-nowrap shadow-xs" 
               : "px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-bold whitespace-nowrap shadow-xs";
           } else {
@@ -908,8 +922,13 @@
         }
       });
 
-      let list = appData.foods;
-      if (activeLibraryCategory === 'unlocked') {
+      let list = [...appData.foods];
+
+      if (activeLibraryCategory === 'countSort') {
+        // 食用次數榜：由吃過最多次到最少次排序
+        list = list.filter(f => countMap[f.name] > 0);
+        list.sort((a, b) => (countMap[b.name] || 0) - (countMap[a.name] || 0));
+      } else if (activeLibraryCategory === 'unlocked') {
         list = list.filter(f => triedIngredients.has(f.name));
       } else if (activeLibraryCategory !== 'all') {
         list = list.filter(f => f.category === activeLibraryCategory);
@@ -931,7 +950,7 @@
       }
 
       grid.innerHTML = list.map(food => {
-        const isTried = triedIngredients.has(food.name);
+        const count = countMap[food.name] || 0;
         const status = appData.foodStatus[food.name] || 'normal';
 
         let statusIcon = '';
@@ -945,7 +964,7 @@
               <span class="text-lg">${food.icon || '🥦'}</span>
               <div>
                 <div class="font-bold text-xs text-slate-800">${escapeHtml(food.name)}</div>
-                <div class="text-[9px] ${isTried ? 'text-emerald-600 font-semibold' : 'text-slate-400'}">${isTried ? '✓ 解鎖' : '未解鎖'}</div>
+                <div class="text-[9px] ${count > 0 ? 'text-emerald-700 font-extrabold' : 'text-slate-400'}">${count > 0 ? `已吃 ${count} 次` : '未解鎖'}</div>
               </div>
             </div>
             <div class="flex items-center gap-1">
@@ -985,7 +1004,6 @@
       appData.foods.push({ name: cleanName, category: category, icon: icon });
       saveData();
       
-      // 新增完成後自動清空搜尋欄
       document.getElementById('librarySearchInput').value = '';
       document.getElementById('pickerSearchInput').value = '';
       renderLibrary();
@@ -1092,8 +1110,8 @@
       const container = document.getElementById('pickerChipsContainer');
       const searchKey = document.getElementById('pickerSearchInput').value.trim();
       const searchKeyLower = searchKey.toLowerCase();
-      const triedSet = new Set();
-      appData.meals.forEach(m => (m.ingredients || []).forEach(i => triedSet.add(typeof i === 'string' ? i : i.name)));
+      const countMap = getIngredientCountMap();
+      const triedSet = new Set(Object.keys(countMap));
 
       let html = '';
 
@@ -1136,7 +1154,6 @@
             selectedMealIngredients.push({ name: ingName });
           }
         });
-        // 套用組合後自動清空搜尋欄
         document.getElementById('pickerSearchInput').value = '';
         renderSelectedIngredientsList();
         renderPickerChips();
@@ -1172,7 +1189,6 @@
       }
     }
 
-    /* 選取/取消選取食材後，自動清空搜尋欄並重置顯示 */
     function togglePickIngredient(name) {
       const idx = selectedMealIngredients.findIndex(i => i.name === name);
       if (idx >= 0) {
@@ -1180,7 +1196,6 @@
       } else {
         selectedMealIngredients.push({ name: name });
       }
-      // 選取後自動清空搜尋欄
       document.getElementById('pickerSearchInput').value = '';
       renderSelectedIngredientsList();
       renderPickerChips();

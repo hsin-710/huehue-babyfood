@@ -40,7 +40,7 @@
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&display=swap');
-    body { font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #f8fafc; }
+    body { font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #f8fafc; -webkit-text-size-adjust: 100%; }
     .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
@@ -56,22 +56,24 @@
         <div>
           <div class="flex items-center gap-2">
             <h1 class="font-bold text-base sm:text-lg text-slate-800 leading-tight">Hue Hue 試敏日誌</h1>
-            <!-- 動態計算的小朋友月齡標籤 -->
             <span id="babyAgeBadge" class="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-extrabold shadow-2xs">算月中...</span>
           </div>
           <p class="text-[9px] sm:text-xs text-slate-500">雲端同步 ‧ 全家共享版</p>
         </div>
       </div>
 
-      <!-- 視圖切換按鈕 -->
-      <div class="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-medium">
-        <button id="viewBtnDaily" onclick="switchView('daily')" class="px-3 sm:px-4 py-1 rounded-lg transition-all flex items-center gap-1 bg-white shadow-xs text-emerald-700 font-semibold">
+      <!-- 視圖切換按鈕 (加入「📊 分析」) -->
+      <div class="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-medium overflow-x-auto custom-scrollbar">
+        <button id="viewBtnDaily" onclick="switchView('daily')" class="px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 bg-white shadow-xs text-emerald-700 font-semibold whitespace-nowrap">
           <i class="fa-solid text-[10px] fa-list-ul"></i> 按日
         </button>
-        <button id="viewBtnCalendar" onclick="switchView('calendar')" class="px-3 sm:px-4 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900">
+        <button id="viewBtnCalendar" onclick="switchView('calendar')" class="px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900 whitespace-nowrap">
           <i class="fa-regular text-[10px] fa-calendar-days"></i> 按月
         </button>
-        <button id="viewBtnLibrary" onclick="switchView('library')" class="px-3 sm:px-4 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900">
+        <button id="viewBtnAnalysis" onclick="switchView('analysis')" class="px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900 whitespace-nowrap">
+          <i class="fa-solid text-[10px] fa-chart-pie"></i> 分析
+        </button>
+        <button id="viewBtnLibrary" onclick="switchView('library')" class="px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900 whitespace-nowrap">
           <i class="fa-solid text-[10px] fa-carrot"></i> 食材庫 <span id="libraryCountBadge" class="bg-emerald-100 text-emerald-800 text-[9px] px-1.5 py-0.2 rounded-full font-bold">0</span>
         </button>
       </div>
@@ -134,7 +136,78 @@
       </div>
     </section>
 
-    <!-- 3. 食材庫視圖 -->
+    <!-- 3. 紀錄分析視圖 (仿截圖質感風格) -->
+    <section id="viewAnalysis" class="hidden space-y-3">
+      <div class="bg-slate-900 text-white p-4 sm:p-6 rounded-3xl space-y-5 shadow-xl border border-slate-800">
+        
+        <!-- 週區間切換 -->
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <button onclick="shiftAnalysisWeek(-1)" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-chevron-left"></i></button>
+          <span id="analysisWeekTitle" class="font-extrabold text-base sm:text-lg tracking-wide text-amber-400">7/13 - 7/19</span>
+          <button onclick="shiftAnalysisWeek(1)" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+
+        <!-- 區塊一：副食品種類分析 -->
+        <div class="space-y-3">
+          <h3 class="font-bold text-sm sm:text-base text-slate-200 flex items-center gap-2">
+            <span>🥗</span> 副食品種類分析
+          </h3>
+          <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700/60 flex items-center justify-between flex-wrap gap-4">
+            <!-- 左側圓環圖 -->
+            <div class="relative w-28 h-28 flex items-center justify-center mx-auto sm:mx-0">
+              <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                <path class="text-slate-700" stroke-width="3.8" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <path id="piePathGrain" class="text-amber-400" stroke-width="3.8" stroke-dasharray="0, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <path id="piePathVeg" class="text-emerald-400" stroke-width="3.8" stroke-dasharray="0, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                <span id="analysisTotalWeight" class="text-base font-black text-white">0</span>
+                <span class="text-[9px] text-slate-400 font-bold">總克數 (g)</span>
+              </div>
+            </div>
+
+            <!-- 右側統計清單 -->
+            <div id="analysisCategoryList" class="flex-1 space-y-2 min-w-[160px]"></div>
+          </div>
+        </div>
+
+        <!-- 區塊二：關鍵營養素卡片 -->
+        <div class="space-y-3 pt-2">
+          <h3 class="font-bold text-sm sm:text-base text-slate-200 flex items-center gap-2">
+            <span>⚡</span> 關鍵營養素估算
+          </h3>
+          <div class="grid grid-cols-2 gap-2.5">
+            <div class="bg-emerald-950/40 border border-emerald-800/40 p-3 rounded-2xl space-y-1">
+              <div class="text-emerald-400 text-xs font-bold flex items-center gap-1">🍃 膳食纖維</div>
+              <div class="text-lg font-black text-white"><span id="nutriFiber">0.0</span> <span class="text-xs text-slate-400 font-normal">g</span></div>
+            </div>
+            <div class="bg-amber-950/40 border border-amber-800/40 p-3 rounded-2xl space-y-1">
+              <div class="text-amber-400 text-xs font-bold flex items-center gap-1">👌 蛋白質</div>
+              <div class="text-lg font-black text-white"><span id="nutriProtein">0.0</span> <span class="text-xs text-slate-400 font-normal">g</span></div>
+            </div>
+            <div class="bg-sky-950/40 border border-sky-800/40 p-3 rounded-2xl space-y-1">
+              <div class="text-sky-400 text-xs font-bold flex items-center gap-1">💧 鈣質</div>
+              <div class="text-lg font-black text-white"><span id="nutriCalcium">0.0</span> <span class="text-xs text-slate-400 font-normal">mg</span></div>
+            </div>
+            <div class="bg-rose-950/40 border border-rose-800/40 p-3 rounded-2xl space-y-1">
+              <div class="text-rose-400 text-xs font-bold flex items-center gap-1">⚡ 鐵質</div>
+              <div class="text-lg font-black text-white"><span id="nutriIron">0.0</span> <span class="text-xs text-slate-400 font-normal">mg</span></div>
+            </div>
+            <div class="bg-purple-950/40 border border-purple-800/40 p-3 rounded-2xl space-y-1">
+              <div class="text-purple-400 text-xs font-bold flex items-center gap-1">👁️ 維生素 A</div>
+              <div class="text-lg font-black text-white"><span id="nutriVitA">0.0</span> <span class="text-xs text-slate-400 font-normal">IU</span></div>
+            </div>
+            <div class="bg-yellow-950/40 border border-yellow-800/40 p-3 rounded-2xl space-y-1">
+              <div class="text-yellow-400 text-xs font-bold flex items-center gap-1">☀️ 維生素 C</div>
+              <div class="text-lg font-black text-white"><span id="nutriVitC">0.0</span> <span class="text-xs text-slate-400 font-normal">mg</span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 4. 食材庫視圖 -->
     <section id="viewLibrary" class="hidden space-y-2.5">
       <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-xs space-y-2">
         <div class="flex items-center justify-between flex-wrap gap-1.5">
@@ -371,6 +444,7 @@
     let activePickerCategory = 'combo';
     let activeLibraryCategory = 'unlocked';
     let calendarCurrentDate = new Date();
+    let analysisWeekOffset = 0;
 
     window.onload = function() {
       loadLocalData();
@@ -383,7 +457,6 @@
       initFirebaseListener();
     };
 
-    /* 計算小朋友目前多大 (生日: 2026-02-17) */
     function calculateBabyAge() {
       const birthDate = new Date('2026-02-17');
       const today = new Date();
@@ -481,6 +554,7 @@
           
           renderDailyCards();
           renderCalendar();
+          renderAnalysis();
           renderLibrary();
           updateBadges();
         }
@@ -606,23 +680,29 @@
     function switchView(viewName) {
       document.getElementById('viewDaily').classList.add('hidden');
       document.getElementById('viewCalendar').classList.add('hidden');
+      document.getElementById('viewAnalysis').classList.add('hidden');
       document.getElementById('viewLibrary').classList.add('hidden');
 
-      document.getElementById('viewBtnDaily').className = "px-3 sm:px-4 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900";
-      document.getElementById('viewBtnCalendar').className = "px-3 sm:px-4 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900";
-      document.getElementById('viewBtnLibrary').className = "px-3 sm:px-4 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900";
+      document.getElementById('viewBtnDaily').className = "px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900 whitespace-nowrap";
+      document.getElementById('viewBtnCalendar').className = "px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900 whitespace-nowrap";
+      document.getElementById('viewBtnAnalysis').className = "px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900 whitespace-nowrap";
+      document.getElementById('viewBtnLibrary').className = "px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900 whitespace-nowrap";
 
       if (viewName === 'daily') {
         document.getElementById('viewDaily').classList.remove('hidden');
-        document.getElementById('viewBtnDaily').className = "px-3 sm:px-4 py-1 rounded-lg transition-all flex items-center gap-1 bg-white shadow-xs text-emerald-700 font-semibold";
+        document.getElementById('viewBtnDaily').className = "px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 bg-white shadow-xs text-emerald-700 font-semibold whitespace-nowrap";
         renderDailyCards();
       } else if (viewName === 'calendar') {
         document.getElementById('viewCalendar').classList.remove('hidden');
-        document.getElementById('viewBtnCalendar').className = "px-3 sm:px-4 py-1 rounded-lg transition-all flex items-center gap-1 bg-white shadow-xs text-emerald-700 font-semibold";
+        document.getElementById('viewBtnCalendar').className = "px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 bg-white shadow-xs text-emerald-700 font-semibold whitespace-nowrap";
         renderCalendar();
+      } else if (viewName === 'analysis') {
+        document.getElementById('viewAnalysis').classList.remove('hidden');
+        document.getElementById('viewBtnAnalysis').className = "px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 bg-white shadow-xs text-emerald-700 font-semibold whitespace-nowrap";
+        renderAnalysis();
       } else if (viewName === 'library') {
         document.getElementById('viewLibrary').classList.remove('hidden');
-        document.getElementById('viewBtnLibrary').className = "px-3 sm:px-4 py-1 rounded-lg transition-all flex items-center gap-1 bg-white shadow-xs text-emerald-700 font-semibold";
+        document.getElementById('viewBtnLibrary').className = "px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 bg-white shadow-xs text-emerald-700 font-semibold whitespace-nowrap";
         renderLibrary();
       }
     }
@@ -637,10 +717,8 @@
       const grid = document.getElementById('calendarGrid');
       grid.innerHTML = '';
 
-      const earliestMap = getEarliestDateMap();
-
       for (let i = 0; i < firstDay; i++) {
-        grid.innerHTML += `<div class="min-h-[65px]"></div>`;
+        grid.innerHTML += `<div class="min-h-[60px]"></div>`;
       }
 
       for (let d = 1; d <= daysInMonth; d++) {
@@ -664,17 +742,17 @@
           const status = appData.foodStatus[ingName] || 'normal';
 
           if (status === 'allergy') {
-            return `<div class="w-full bg-rose-600 text-black font-black px-1.5 py-0.5 rounded-lg text-[9px] text-center shadow-2xs border border-rose-800 truncate">❌ ${escapeHtml(ingName)}</div>`;
+            return `<div class="w-full bg-rose-600 text-black font-black px-0.5 py-0.5 rounded-md text-[8px] sm:text-[10px] text-center shadow-2xs border border-rose-800 whitespace-nowrap tracking-tighter">❌${escapeHtml(ingName)}</div>`;
           } else {
-            return `<div class="w-full bg-slate-100/90 text-slate-800 font-bold px-1 py-0.5 rounded-lg text-[9px] text-center border border-slate-200/80 truncate shadow-2xs">${escapeHtml(ingName)}</div>`;
+            return `<div class="w-full bg-slate-100/90 text-slate-800 font-bold px-0.5 py-0.5 rounded-md text-[8px] sm:text-[10px] text-center border border-slate-200/80 shadow-2xs whitespace-nowrap tracking-tighter">${escapeHtml(ingName)}</div>`;
           }
         }).join('');
 
         const isToday = dateStr === new Date().toISOString().split('T')[0];
         grid.innerHTML += `
-          <div onclick="jumpToDateFromCalendar('${dateStr}')" class="rounded-2xl ${isToday ? 'bg-emerald-50/50 border-2 border-emerald-500' : 'bg-white border border-slate-100'} p-1 min-h-[65px] h-auto flex flex-col items-center justify-start cursor-pointer transition-all hover:border-emerald-300">
-            <span class="text-xs sm:text-sm font-black text-slate-800 mb-1 ${isToday ? 'text-emerald-700 font-extrabold' : ''}">${d}</span>
-            <div class="space-y-1 w-full">${ingredientsChipsHtml}</div>
+          <div onclick="jumpToDateFromCalendar('${dateStr}')" class="rounded-2xl ${isToday ? 'bg-emerald-50/50 border-2 border-emerald-500' : 'bg-white border border-slate-100'} p-0.5 sm:p-1 min-h-[60px] h-auto flex flex-col items-center justify-start cursor-pointer transition-all hover:border-emerald-300">
+            <span class="text-xs sm:text-sm font-black text-slate-800 mb-0.5 ${isToday ? 'text-emerald-700 font-extrabold' : ''}">${d}</span>
+            <div class="space-y-0.5 w-full">${ingredientsChipsHtml}</div>
           </div>`;
       }
     }
@@ -687,6 +765,89 @@
     function jumpToDateFromCalendar(dateStr) {
       document.getElementById('dailyDateFilter').value = dateStr;
       switchView('daily');
+    }
+
+    /* 渲染分析頁面 (副食品種類分析 + 關鍵營養素估算) */
+    function shiftAnalysisWeek(delta) {
+      analysisWeekOffset += delta;
+      renderAnalysis();
+    }
+
+    function renderAnalysis() {
+      const now = new Date();
+      const currentDay = now.getDay();
+      const diffToMonday = now.getDate() - currentDay + (currentDay === 0 ? -6 : 1);
+      
+      const monday = new Date(now.setDate(diffToMonday));
+      monday.setDate(monday.getDate() + (analysisWeekOffset * 7));
+
+      const sunday = new Date(monday);
+      sunday.setDate(sunday.getDate() + 6);
+
+      const startStr = `${monday.getMonth() + 1}/${monday.getDate()}`;
+      const endStr = `${sunday.getMonth() + 1}/${sunday.getDate()}`;
+      document.getElementById('analysisWeekTitle').innerText = `${startStr} - ${endStr}`;
+
+      const startDateStr = monday.toISOString().split('T')[0];
+      const endDateStr = sunday.toISOString().split('T')[0];
+
+      const weekMeals = appData.meals.filter(m => m.date >= startDateStr && m.date <= endDateStr);
+
+      let totalWeight = 0;
+      const categoryWeights = { '穀物澱粉': 0, '蔬菜菌菇': 0, '水果': 0, '蛋豆魚肉乳': 0, '海藻其他': 0 };
+
+      weekMeals.forEach(m => {
+        const w = parseFloat(m.weight) || 50; // 若未填寫預設 50g
+        const ings = m.ingredients || [];
+        if (ings.length > 0) {
+          const portion = w / ings.length;
+          ings.forEach(i => {
+            const ingName = typeof i === 'string' ? i : i.name;
+            const foodObj = appData.foods.find(f => f.name === ingName) || { category: '海藻其他' };
+            const cat = foodObj.category || '海藻其他';
+            categoryWeights[cat] = (categoryWeights[cat] || 0) + portion;
+            totalWeight += portion;
+          });
+        }
+      });
+
+      document.getElementById('analysisTotalWeight').innerText = totalWeight.toFixed(0);
+
+      // 圓環比例繪製
+      const grainPct = totalWeight > 0 ? (categoryWeights['穀物澱粉'] / totalWeight) * 100 : 0;
+      const vegPct = totalWeight > 0 ? (categoryWeights['蔬菜菌菇'] / totalWeight) * 100 : 0;
+
+      document.getElementById('piePathGrain').setAttribute('stroke-dasharray', `${grainPct}, 100`);
+      document.getElementById('piePathVeg').setAttribute('stroke-dasharray', `${vegPct}, 100`);
+      document.getElementById('piePathVeg').setAttribute('stroke-dashoffset`, `-${grainPct}`);
+
+      // 右側分類列表
+      const catListContainer = document.getElementById('analysisCategoryList');
+      let catHtml = '';
+      const catIcons = { '穀物澱粉': '🍚', '蔬菜菌菇': '🥬', '水果': '🍎', '蛋豆魚肉乳': '🥩', '海藻其他': '🌿' };
+
+      Object.keys(categoryWeights).forEach(cat => {
+        const w = categoryWeights[cat];
+        if (w > 0 || totalWeight === 0) {
+          catHtml += `
+            <div class="flex items-center justify-between text-xs">
+              <div class="flex items-center gap-1.5">
+                <span class="text-sm">${catIcons[cat]}</span>
+                <span class="font-bold text-slate-300">${cat}</span>
+              </div>
+              <span class="font-black text-white">${w.toFixed(1)} <span class="text-[10px] text-slate-400">g</span></span>
+            </div>`;
+        }
+      });
+      catListContainer.innerHTML = catHtml || `<div class="text-xs text-slate-400">本週尚無飲食紀錄</div>`;
+
+      // 關鍵營養素估算 (根據克數換算)
+      document.getElementById('nutriFiber').innerText = (totalWeight * 0.035).toFixed(1);
+      document.getElementById('nutriProtein').innerText = (totalWeight * 0.041).toFixed(1);
+      document.getElementById('nutriCalcium').innerText = (totalWeight * 0.66).toFixed(1);
+      document.getElementById('nutriIron').innerText = (totalWeight * 0.011).toFixed(1);
+      document.getElementById('nutriVitA').innerText = (totalWeight * 52.1).toFixed(1);
+      document.getElementById('nutriVitC').innerText = (totalWeight * 0.28).toFixed(1);
     }
 
     function renderLibrary() {
@@ -1009,6 +1170,7 @@
       renderSelectedIngredientsList();
       renderDailyCards();
       renderCalendar();
+      renderAnalysis();
     }
 
     function handleMealSubmit(e) {
@@ -1042,6 +1204,7 @@
       document.getElementById('dailyDateFilter').value = mealData.date;
       renderDailyCards();
       renderCalendar();
+      renderAnalysis();
     }
 
     function deleteMeal(id) {
@@ -1050,6 +1213,7 @@
         saveData();
         renderDailyCards();
         renderCalendar();
+        renderAnalysis();
       }
     }
 

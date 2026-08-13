@@ -44,6 +44,17 @@
     .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+    /* 各食材分類莫蘭迪柔和配色 */
+    .cat-grain { background-color: #fef9c3; color: #713f12; border-color: #fef08a; } /* 穀物澱粉: 淡黃 */
+    .cat-veg   { background-color: #dcfce7; color: #14532d; border-color: #bbf7d0; } /* 蔬菜菌菇: 淡綠 */
+    .cat-fruit { background-color: #ffe4e6; color: #881337; border-color: #fecdd3; } /* 水果類: 淡粉紅 */
+    .cat-meat  { background-color: #ffedd5; color: #7c2d12; border-color: #fed7aa; } /* 蛋白肉類: 淡橘 */
+    .cat-other { background-color: #e0f2fe; color: #0c4a6e; border-color: #bae6fd; } /* 其他: 淡藍 */
+    .cat-allergy { background-color: #f87171; color: #ffffff; border-color: #dc2626; font-weight: 900; } /* 過敏: 警示紅 */
+    
+    /* 首次嘗試新食材特殊美感標註 */
+    .is-first-new { ring: 1.5px; ring-color: #f59e0b; border-color: #f59e0b !important; font-weight: 800 !important; }
   </style>
 </head>
 <body class="text-slate-800 antialiased min-h-screen flex flex-col pb-8">
@@ -56,7 +67,6 @@
         <div>
           <div class="flex items-center gap-2 flex-wrap">
             <h1 class="font-bold text-base sm:text-lg text-slate-800 leading-tight">Hue Hue 試敏日誌</h1>
-            <!-- 精準計算的月齡與天數標籤 -->
             <span id="babyAgeBadge" class="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-extrabold shadow-2xs">算月中...</span>
           </div>
           <p class="text-[9px] sm:text-xs text-slate-500">雲端同步 ‧ 全家共享版</p>
@@ -122,7 +132,7 @@
       <div id="dailyCardsContainer" class="space-y-2"></div>
     </section>
 
-    <!-- 2. 按月視圖 -->
+    <!-- 2. 按月視圖 (美感色彩區分版) -->
     <section id="viewCalendar" class="hidden space-y-3">
       <div class="bg-white p-2.5 sm:p-5 rounded-2xl border border-slate-200 shadow-xs overflow-x-auto custom-scrollbar">
         <div class="flex items-center justify-between mb-3 min-w-[320px]">
@@ -281,29 +291,30 @@
       <form id="mealForm" onsubmit="handleMealSubmit(event)" class="p-3.5 sm:p-5 space-y-3">
         <input type="hidden" id="editingMealId" value="">
 
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <!-- 時間選擇器拉至最上方 -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 bg-slate-50 p-2.5 rounded-2xl border border-slate-200/80">
+          <div>
+            <label class="block text-[11px] font-bold text-emerald-800 mb-0.5">⏰ 食用時間</label>
+            <input type="time" id="mealTime" value="09:00" required onchange="autoUpdateMealTypeByTime()" class="w-full border border-slate-300 rounded-lg px-2 py-1 text-xs bg-white font-bold focus:ring-1 focus:ring-emerald-500">
+          </div>
           <div>
             <label class="block text-[11px] font-bold text-slate-700 mb-0.5">日期</label>
-            <input type="date" id="mealDate" required class="w-full border border-slate-300 rounded-lg px-2 py-1 text-xs bg-slate-50 focus:bg-white focus:ring-1 focus:ring-emerald-500">
+            <input type="date" id="mealDate" required class="w-full border border-slate-300 rounded-lg px-2 py-1 text-xs bg-white focus:ring-1 focus:ring-emerald-500">
           </div>
           <div>
-            <label class="block text-[11px] font-bold text-slate-700 mb-0.5">時間</label>
-            <input type="time" id="mealTime" value="12:00" required class="w-full border border-slate-300 rounded-lg px-2 py-1 text-xs bg-slate-50 focus:bg-white focus:ring-1 focus:ring-emerald-500">
-          </div>
-          <div>
-            <label class="block text-[11px] font-bold text-slate-700 mb-0.5">餐別</label>
-            <select id="mealType" class="w-full border border-slate-300 rounded-lg px-2 py-1 text-xs bg-slate-50 focus:bg-white focus:ring-1 focus:ring-emerald-500">
-              <option value="早餐">🥣 早餐</option>
-              <option value="早點心">🍎 早點心</option>
-              <option value="午餐" selected>🍱 午餐</option>
-              <option value="下午茶">🍪 下午茶</option>
-              <option value="晚餐">🍲 晚餐</option>
-              <option value="晚點心">🥛 晚點心</option>
+            <label class="block text-[11px] font-bold text-slate-700 mb-0.5">餐別 (時間自動對應)</label>
+            <select id="mealType" class="w-full border border-slate-300 rounded-lg px-2 py-1 text-xs bg-white focus:ring-1 focus:ring-emerald-500">
+              <option value="早餐">🥣 早餐 (上午)</option>
+              <option value="早點心">🍎 早點心 (上午)</option>
+              <option value="午餐">🍱 午餐 (下午)</option>
+              <option value="下午茶">🍪 下午茶 (下午)</option>
+              <option value="晚餐">🍲 晚餐 (下午/晚上)</option>
+              <option value="晚點心">🥛 晚點心 (晚上)</option>
             </select>
           </div>
           <div>
             <label class="block text-[11px] font-bold text-slate-700 mb-0.5">食用總量 (g/ml)</label>
-            <input type="number" id="mealWeight" placeholder="例：80" class="w-full border border-slate-300 rounded-lg px-2 py-1 text-xs bg-slate-50 focus:bg-white focus:ring-1 focus:ring-emerald-500">
+            <input type="number" id="mealWeight" placeholder="例：80" class="w-full border border-slate-300 rounded-lg px-2 py-1 text-xs bg-white focus:ring-1 focus:ring-emerald-500">
           </div>
         </div>
 
@@ -453,12 +464,25 @@
       initFirebaseListener();
     };
 
-    /* 精準計算小朋友年齡（格式：○個月○天 ‧ 出生第○天） */
+    /* 根據時間自動切換餐別 (上午/下午) */
+    function autoUpdateMealTypeByTime() {
+      const timeVal = document.getElementById('mealTime').value;
+      if (!timeVal) return;
+      const hour = parseInt(timeVal.split(':')[0], 10);
+      const mealTypeElem = document.getElementById('mealType');
+
+      if (hour >= 5 && hour < 10) mealTypeElem.value = "早餐";
+      else if (hour >= 10 && hour < 12) mealTypeElem.value = "早點心";
+      else if (hour >= 12 && hour < 14) mealTypeElem.value = "午餐";
+      else if (hour >= 14 && hour < 17) mealTypeElem.value = "下午茶";
+      else if (hour >= 17 && hour < 21) mealTypeElem.value = "晚餐";
+      else mealTypeElem.value = "晚點心";
+    }
+
     function calculateBabyAge() {
       const birthDate = new Date(2026, 1, 17); // 2026-02-17
       const today = new Date();
 
-      // 將時間重置回凌晨0點進行純日期計算
       const bDate = new Date(birthDate.getFullYear(), birthDate.getMonth(), birthDate.getDate());
       const tDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
@@ -467,17 +491,14 @@
         return;
       }
 
-      // 1. 計算出生累積總天數
       const totalDays = Math.floor((tDate - bDate) / (1000 * 60 * 60 * 24)) + 1;
 
-      // 2. 計算精準月天數 (Months & Days)
       let years = tDate.getFullYear() - bDate.getFullYear();
       let months = tDate.getMonth() - bDate.getMonth();
       let days = tDate.getDate() - bDate.getDate();
 
       if (days < 0) {
         months--;
-        // 上個月的最後一天日期 (得知上個月有幾天)
         const prevMonthLastDay = new Date(tDate.getFullYear(), tDate.getMonth(), 0).getDate();
         days += prevMonthLastDay;
       }
@@ -654,7 +675,7 @@
             <div class="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs">
               <span>${foodObj.icon || '🥦'}</span>
               <span class="font-bold text-slate-800">${escapeHtml(ingName)}</span>
-              ${isFirstEverOccur ? '<span class="bg-amber-400 text-slate-900 font-extrabold text-[8px] px-1 rounded">新嘗試</span>' : ''}
+              ${isFirstEverOccur ? '<span class="bg-amber-400 text-slate-900 font-extrabold text-[8px] px-1 rounded">✨新嘗試</span>' : ''}
               ${statusTag}
             </div>`;
         }).join('');
@@ -716,6 +737,7 @@
       }
     }
 
+    /* 渲染按月日曆：分類馬卡龍柔和色彩區分 + 首次嘗試標註 */
     function renderCalendar() {
       const year = calendarCurrentDate.getFullYear();
       const month = calendarCurrentDate.getMonth();
@@ -725,6 +747,8 @@
       const daysInMonth = new Date(year, month + 1, 0).getDate();
       const grid = document.getElementById('calendarGrid');
       grid.innerHTML = '';
+
+      const earliestMap = getEarliestDateMap();
 
       for (let i = 0; i < firstDay; i++) {
         grid.innerHTML += `<div class="min-h-[60px]"></div>`;
@@ -749,12 +773,18 @@
 
         let ingredientsChipsHtml = dayIngredients.map(ingName => {
           const status = appData.foodStatus[ingName] || 'normal';
+          const isFirstEverOccur = earliestMap[ingName] === dateStr;
+          const foodObj = appData.foods.find(f => f.name === ingName) || {};
+          const cat = foodObj.category || '海藻其他';
 
-          if (status === 'allergy') {
-            return `<div class="w-full bg-rose-600 text-black font-black px-0.5 py-0.5 rounded-md text-[8px] sm:text-[10px] text-center shadow-2xs border border-rose-800 whitespace-nowrap tracking-tighter">❌${escapeHtml(ingName)}</div>`;
-          } else {
-            return `<div class="w-full bg-slate-100/90 text-slate-800 font-bold px-0.5 py-0.5 rounded-md text-[8px] sm:text-[10px] text-center border border-slate-200/80 shadow-2xs whitespace-nowrap tracking-tighter">${escapeHtml(ingName)}</div>`;
-          }
+          let catClass = 'cat-other';
+          if (status === 'allergy') catClass = 'cat-allergy';
+          else if (cat === '穀物澱粉') catClass = 'cat-grain';
+          else if (cat === '蔬菜菌菇') catClass = 'cat-veg';
+          else if (cat === '水果') catClass = 'cat-fruit';
+          else if (cat === '蛋豆魚肉乳') catClass = 'cat-meat';
+
+          return `<div class="w-full ${catClass} ${isFirstEverOccur ? 'is-first-new' : ''} px-0.5 py-0.5 rounded-md text-[8px] sm:text-[10px] text-center border shadow-2xs whitespace-nowrap tracking-tighter">${escapeHtml(ingName)}${isFirstEverOccur ? '✨' : ''}</div>`;
         }).join('');
 
         const isToday = dateStr === new Date().toISOString().split('T')[0];
@@ -1017,8 +1047,8 @@
         document.getElementById('submitMealBtnLabel').innerText = '儲存修改內容';
         document.getElementById('editingMealId').value = mealToEdit.id;
         document.getElementById('mealDate').value = mealToEdit.date;
-        document.getElementById('mealTime').value = mealToEdit.time || '12:00';
-        document.getElementById('mealType').value = mealToEdit.type || '午餐';
+        document.getElementById('mealTime').value = mealToEdit.time || '09:00';
+        document.getElementById('mealType').value = mealToEdit.type || '早餐';
         document.getElementById('mealWeight').value = mealToEdit.weight || '';
         document.getElementById('mealTexture').value = mealToEdit.texture || '十倍粥 / 米湯';
         document.getElementById('mealNotes').value = mealToEdit.notes || '';
@@ -1032,7 +1062,8 @@
         document.getElementById('submitMealBtnLabel').innerText = '儲存餐點紀錄';
         document.getElementById('editingMealId').value = '';
         document.getElementById('mealDate').value = presetDate || document.getElementById('dailyDateFilter').value || new Date().toISOString().split('T')[0];
-        document.getElementById('mealTime').value = '12:00';
+        document.getElementById('mealTime').value = '09:00';
+        autoUpdateMealTypeByTime();
         selectedMealIngredients = [];
       }
 

@@ -213,7 +213,7 @@
       </div>
     </section>
 
-    <!-- 4. 食材庫視圖 (含食用次數統計) -->
+    <!-- 4. 食材庫視圖 -->
     <section id="viewLibrary" class="hidden space-y-2.5">
       <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-xs space-y-2">
         <div class="flex items-center justify-between flex-wrap gap-1.5">
@@ -407,6 +407,9 @@
       { name: '菠菜', category: '蔬菜菌菇', icon: '🥬' },
       { name: '小白菜', category: '蔬菜菌菇', icon: '🥬' },
       { name: '青江菜', category: '蔬菜菌菇', icon: '🥬' },
+      { name: '長豆(豇豆)', category: '蔬菜菌菇', icon: '🥬' },
+      { name: '黑木耳', category: '蔬菜菌菇', icon: '🍄' },
+      { name: '白木耳', category: '蔬菜菌菇', icon: '⚪' },
       { name: '絲瓜', category: '蔬菜菌菇', icon: '🥒' },
       { name: '小黃瓜', category: '蔬菜菌菇', icon: '🥒' },
       { name: '冬瓜', category: '蔬菜菌菇', icon: '🍈' },
@@ -418,7 +421,8 @@
       { name: '香蕉', category: '水果', icon: '🍌' },
       { name: '水梨', category: '水果', icon: '🍐' },
       { name: '芭樂', category: '水果', icon: '🍈' },
-      { name: '火龍果', category: '水果', icon: '🐉' },
+      { name: '紅肉火龍果', category: '水果', icon: '🐉' },
+      { name: '白肉火龍果', category: '水果', icon: '🐉' },
       { name: '木瓜', category: '水果', icon: '🍈' },
       { name: '葡萄', category: '水果', icon: '🍇' },
       { name: '草莓', category: '水果', icon: '🍓' },
@@ -465,6 +469,13 @@
       initFirebaseListener();
     };
 
+    function getLocalDateString(d = new Date()) {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
     function autoUpdateMealTypeByTime() {
       const timeVal = document.getElementById('mealTime').value;
       if (!timeVal) return;
@@ -480,7 +491,7 @@
     }
 
     function calculateBabyAge() {
-      const birthDate = new Date(2026, 1, 17); // 2026-02-17
+      const birthDate = new Date(2026, 1, 17);
       const today = new Date();
 
       const bDate = new Date(birthDate.getFullYear(), birthDate.getMonth(), birthDate.getDate());
@@ -566,7 +577,6 @@
       return map;
     }
 
-    /* 全局計算每個食材吃過的總次數 */
     function getIngredientCountMap() {
       const countMap = {};
       appData.meals.forEach(m => {
@@ -636,23 +646,24 @@
 
     function shiftDailyDate(offsetDays) {
       const input = document.getElementById('dailyDateFilter');
-      const dateObj = new Date(input.value || new Date());
+      const parts = (input.value || getLocalDateString()).split('-');
+      const dateObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
       dateObj.setDate(dateObj.getDate() + offsetDays);
-      input.value = dateObj.toISOString().split('T')[0];
+      input.value = getLocalDateString(dateObj);
       renderDailyCards();
     }
 
     function resetDailyDateToToday() {
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById('dailyDateFilter').value = today;
-      document.getElementById('mealDate').value = today;
+      const todayStr = getLocalDateString();
+      document.getElementById('dailyDateFilter').value = todayStr;
+      document.getElementById('mealDate').value = todayStr;
       renderDailyCards();
     }
 
     function renderDailyCards() {
       const container = document.getElementById('dailyCardsContainer');
       const targetDate = document.getElementById('dailyDateFilter').value;
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = getLocalDateString();
       const earliestMap = getEarliestDateMap();
 
       document.getElementById('btnJumpToToday').classList.toggle('hidden', targetDate === todayStr);
@@ -760,6 +771,7 @@
       grid.innerHTML = '';
 
       const earliestMap = getEarliestDateMap();
+      const todayStr = getLocalDateString();
 
       for (let i = 0; i < firstDay; i++) {
         grid.innerHTML += `<div class="min-h-[60px]"></div>`;
@@ -798,7 +810,7 @@
           return `<div class="w-full ${catClass} ${isFirstEverOccur ? 'is-first-new' : ''} px-0.5 py-0.5 rounded-md text-[8px] sm:text-[10px] text-center border shadow-2xs whitespace-nowrap tracking-tighter">${escapeHtml(ingName)}${isFirstEverOccur ? '✨' : ''}</div>`;
         }).join('');
 
-        const isToday = dateStr === new Date().toISOString().split('T')[0];
+        const isToday = dateStr === todayStr;
         grid.innerHTML += `
           <div onclick="jumpToDateFromCalendar('${dateStr}')" class="rounded-2xl ${isToday ? 'bg-emerald-50/50 border-2 border-emerald-500' : 'bg-white border border-slate-100'} p-0.5 sm:p-1 min-h-[60px] h-auto flex flex-col items-center justify-start cursor-pointer transition-all hover:border-emerald-300">
             <span class="text-xs sm:text-sm font-black text-slate-800 mb-0.5 ${isToday ? 'text-emerald-700 font-extrabold' : ''}">${d}</span>
@@ -837,8 +849,8 @@
       const endStr = `${sunday.getMonth() + 1}/${sunday.getDate()}`;
       document.getElementById('analysisWeekTitle').innerText = `${startStr} - ${endStr}`;
 
-      const startDateStr = monday.toISOString().split('T')[0];
-      const endDateStr = sunday.toISOString().split('T')[0];
+      const startDateStr = getLocalDateString(monday);
+      const endDateStr = getLocalDateString(sunday);
 
       const weekMeals = appData.meals.filter(m => m.date >= startDateStr && m.date <= endDateStr);
 
@@ -896,7 +908,6 @@
       document.getElementById('nutriVitC').innerText = (totalWeight * 0.28).toFixed(1);
     }
 
-    /* 渲染食材庫：加入「食用次數統計」與「食用次數榜」排序功能 */
     function renderLibrary() {
       const grid = document.getElementById('libraryGrid');
       const notFoundContainer = document.getElementById('libraryNotFoundContainer');
@@ -925,7 +936,6 @@
       let list = [...appData.foods];
 
       if (activeLibraryCategory === 'countSort') {
-        // 食用次數榜：由吃過最多次到最少次排序
         list = list.filter(f => countMap[f.name] > 0);
         list.sort((a, b) => (countMap[b.name] || 0) - (countMap[a.name] || 0));
       } else if (activeLibraryCategory === 'unlocked') {
@@ -1024,6 +1034,7 @@
       document.getElementById('foodEditModal').classList.add('hidden');
     }
 
+    /* 修改食材名稱與分類（自動連動過去所有歷史紀錄） */
     function saveFoodEdit() {
       const oldName = document.getElementById('editingFoodOldName').value;
       const newName = document.getElementById('editingFoodName').value.trim();
@@ -1045,11 +1056,37 @@
         else if (newCat === "蛋豆魚肉乳") food.icon = "🥩";
         else if (newCat === "海藻其他") food.icon = "🌿";
 
+        // 連動更新過去所有餐點、食物組合與過敏試敏狀態
+        if (oldName !== newName) {
+          appData.meals.forEach(meal => {
+            (meal.ingredients || []).forEach(ing => {
+              if (typeof ing === 'object' && ing.name === oldName) {
+                ing.name = newName;
+              } else if (typeof ing === 'string' && ing === oldName) {
+                ing = newName;
+              }
+            });
+          });
+
+          if (appData.foodStatus[oldName] !== undefined) {
+            appData.foodStatus[newName] = appData.foodStatus[oldName];
+            delete appData.foodStatus[oldName];
+          }
+
+          (appData.combos || []).forEach(combo => {
+            if (combo.ingredients) {
+              combo.ingredients = combo.ingredients.map(i => i === oldName ? newName : i);
+            }
+          });
+        }
+
         saveData();
         closeFoodEditModal();
         renderLibrary();
         renderDailyCards();
         renderCalendar();
+        renderAnalysis();
+        alert(`已成功將「${oldName}」更新為「${newName}」，所有歷史紀錄已同步更新！`);
       }
     }
 
@@ -1080,7 +1117,7 @@
         document.getElementById('modalHeaderLabel').innerText = '紀錄餐點食材';
         document.getElementById('submitMealBtnLabel').innerText = '儲存餐點紀錄';
         document.getElementById('editingMealId').value = '';
-        document.getElementById('mealDate').value = presetDate || document.getElementById('dailyDateFilter').value || new Date().toISOString().split('T')[0];
+        document.getElementById('mealDate').value = presetDate || document.getElementById('dailyDateFilter').value || getLocalDateString();
         document.getElementById('mealTime').value = '09:00';
         autoUpdateMealTypeByTime();
         selectedMealIngredients = [];

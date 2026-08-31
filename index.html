@@ -251,7 +251,7 @@
 
   </main>
 
-  <!-- 食材分類修改彈窗 -->
+  <!-- 食材分類修改/刪除彈窗 -->
   <div id="foodEditModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-4 space-y-3 shadow-2xl border border-slate-100">
       <div class="flex items-center justify-between border-b pb-2">
@@ -273,9 +273,15 @@
           <option value="海藻其他">🌿 海藻其他</option>
         </select>
       </div>
-      <div class="flex gap-2 pt-2 border-t border-slate-100">
-        <button type="button" onclick="closeFoodEditModal()" class="flex-1 bg-slate-100 text-slate-600 py-2 rounded-xl font-bold hover:bg-slate-200 text-xs">取消</button>
-        <button type="button" onclick="saveFoodEdit()" class="flex-1 bg-emerald-600 text-white py-2 rounded-xl font-bold hover:bg-emerald-700 text-xs shadow-xs">儲存修改</button>
+      <div class="flex items-center gap-2 pt-2 border-t border-slate-100">
+        <!-- 新增刪除按鈕 -->
+        <button type="button" onclick="deleteCurrentFood()" class="bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 px-3 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-1" title="徹底刪除此食材">
+          <i class="fa-solid fa-trash-can text-xs"></i> 刪除
+        </button>
+        <div class="flex-1 flex gap-1.5">
+          <button type="button" onclick="closeFoodEditModal()" class="flex-1 bg-slate-100 text-slate-600 py-2 rounded-xl font-bold hover:bg-slate-200 text-xs">取消</button>
+          <button type="button" onclick="saveFoodEdit()" class="flex-1 bg-emerald-600 text-white py-2 rounded-xl font-bold hover:bg-emerald-700 text-xs shadow-xs">儲存</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1034,7 +1040,6 @@
       document.getElementById('foodEditModal').classList.add('hidden');
     }
 
-    /* 修改食材名稱與分類（自動連動過去所有歷史紀錄） */
     function saveFoodEdit() {
       const oldName = document.getElementById('editingFoodOldName').value;
       const newName = document.getElementById('editingFoodName').value.trim();
@@ -1056,7 +1061,6 @@
         else if (newCat === "蛋豆魚肉乳") food.icon = "🥩";
         else if (newCat === "海藻其他") food.icon = "🌿";
 
-        // 連動更新過去所有餐點、食物組合與過敏試敏狀態
         if (oldName !== newName) {
           appData.meals.forEach(meal => {
             (meal.ingredients || []).forEach(ing => {
@@ -1090,6 +1094,26 @@
       }
     }
 
+    /* 徹底刪除食材 */
+    function deleteCurrentFood() {
+      const foodName = document.getElementById('editingFoodOldName').value;
+      if (!foodName) return;
+
+      if (confirm(`確定要從食材庫中徹底刪除「${foodName}」嗎？\n（此操作無法復原）`)) {
+        appData.foods = appData.foods.filter(f => f.name !== foodName);
+        if (appData.foodStatus[foodName]) {
+          delete appData.foodStatus[foodName];
+        }
+        saveData();
+        closeFoodEditModal();
+        renderLibrary();
+        renderPickerChips();
+        renderDailyCards();
+        renderCalendar();
+        alert(`已成功刪除食材「${foodName}」！`);
+      }
+    }
+
     function filterLibraryCategory(cat) {
       activeLibraryCategory = cat;
       renderLibrary();
@@ -1107,7 +1131,7 @@
         document.getElementById('mealType').value = mealToEdit.type || '早餐';
         document.getElementById('mealWeight').value = mealToEdit.weight || '';
         document.getElementById('mealTexture').value = mealToEdit.texture || '十倍粥 / 米湯';
-        document.getElementById('mealNotes').value = mealToEdit.notes || '';
+        document.getElementById('mealNotes').value = mealNotes.value || '';
 
         selectedMealIngredients = (mealToEdit.ingredients || []).map(item => {
           const ingName = typeof item === 'string' ? item : item.name;

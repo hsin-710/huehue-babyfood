@@ -46,15 +46,13 @@
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 
     /* 各食材分類莫蘭迪柔和配色 */
-    .cat-grain { background-color: #fef9c3; color: #713f12; border-color: #fef08a; } /* 穀物澱粉: 淡黃 */
-    .cat-veg   { background-color: #dcfce7; color: #14532d; border-color: #bbf7d0; } /* 蔬菜菌菇: 淡綠 */
-    .cat-fruit { background-color: #ffe4e6; color: #881337; border-color: #fecdd3; } /* 水果類: 淡粉紅 */
-    .cat-meat  { background-color: #ffedd5; color: #7c2d12; border-color: #fed7aa; } /* 蛋白肉類: 淡橘 */
-    .cat-other { background-color: #e0f2fe; color: #0c4a6e; border-color: #bae6fd; } /* 其他: 淡藍 */
-    .cat-allergy { background-color: #f87171; color: #ffffff; border-color: #dc2626; font-weight: 900; } /* 過敏: 警示紅 */
-    
-    /* 首次嘗試新食材特殊美感標註 */
-    .is-first-new { ring: 1.5px; ring-color: #f59e0b; border-color: #f59e0b !important; font-weight: 800 !important; }
+    .cat-grain { background-color: #fef9c3; color: #713f12; border-color: #fef08a; }
+    .cat-veg   { background-color: #dcfce7; color: #14532d; border-color: #bbf7d0; }
+    .cat-fruit { background-color: #ffe4e6; color: #881337; border-color: #fecdd3; }
+    .cat-meat  { background-color: #ffedd5; color: #7c2d12; border-color: #fed7aa; }
+    .cat-combo { background-color: #f1f5f9; color: #1e293b; border-color: #e2e8f0; font-weight: 800; }
+    .cat-other { background-color: #e0f2fe; color: #0c4a6e; border-color: #bae6fd; }
+    .cat-allergy { background-color: #f87171; color: #ffffff; border-color: #dc2626; font-weight: 900; }
   </style>
 </head>
 <body class="text-slate-800 antialiased min-h-screen flex flex-col pb-8">
@@ -113,8 +111,8 @@
   <!-- 主要內容區 -->
   <main class="max-w-7xl mx-auto px-2.5 sm:px-6 pt-2.5 flex-1 w-full">
 
-    <!-- 1. 按日視圖 -->
-    <section id="viewDaily" class="space-y-2.5">
+    <!-- 1. 按日視圖 (截圖風時間卡片版) -->
+    <section id="viewDaily" class="space-y-3">
       <div class="flex items-center justify-between bg-white px-3 py-2 rounded-2xl border border-slate-200 shadow-xs flex-wrap gap-1.5">
         <div class="flex items-center gap-1.5 flex-wrap">
           <button onclick="shiftDailyDate(-1)" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold text-xs transition-all flex items-center gap-1">
@@ -129,7 +127,7 @@
           </button>
         </div>
       </div>
-      <div id="dailyCardsContainer" class="space-y-2"></div>
+      <div id="dailyCardsContainer" class="space-y-2.5"></div>
     </section>
 
     <!-- 2. 按月視圖 -->
@@ -150,7 +148,6 @@
     <!-- 3. 紀錄分析視圖 -->
     <section id="viewAnalysis" class="hidden space-y-3">
       <div class="bg-slate-900 text-white p-4 sm:p-6 rounded-3xl space-y-5 shadow-xl border border-slate-800">
-        
         <div class="flex items-center justify-between border-b border-slate-800 pb-3">
           <button onclick="shiftAnalysisWeek(-1)" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-chevron-left"></i></button>
           <span id="analysisWeekTitle" class="font-extrabold text-base sm:text-lg tracking-wide text-amber-400">7/13 - 7/19</span>
@@ -209,7 +206,6 @@
             </div>
           </div>
         </div>
-
       </div>
     </section>
 
@@ -274,7 +270,6 @@
         </select>
       </div>
       <div class="flex items-center gap-2 pt-2 border-t border-slate-100">
-        <!-- 新增刪除按鈕 -->
         <button type="button" onclick="deleteCurrentFood()" class="bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 px-3 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-1" title="徹底刪除此食材">
           <i class="fa-solid fa-trash-can text-xs"></i> 刪除
         </button>
@@ -297,6 +292,7 @@
 
       <form id="mealForm" onsubmit="handleMealSubmit(event)" class="p-3.5 sm:p-5 space-y-3">
         <input type="hidden" id="editingMealId" value="">
+        <input type="hidden" id="mealComboName" value="">
 
         <!-- 時間選擇器 -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-2 bg-slate-50 p-2.5 rounded-2xl border border-slate-200/80">
@@ -353,7 +349,7 @@
 
         <div class="bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100 space-y-1.5">
           <div class="text-[11px] font-bold text-emerald-900 flex items-center justify-between">
-            <span>已選擇食材：</span>
+            <span id="selectedIngredientsSummaryLabel">已選擇食材：</span>
             <div class="flex items-center gap-2">
               <span id="selectedIngredientsCount" class="text-emerald-700 font-semibold">0 項</span>
               <button type="button" onclick="saveCurrentAsCombo()" class="text-[10px] bg-amber-500 hover:bg-amber-600 text-white font-bold px-2 py-0.5 rounded-md shadow-2xs">💾 存為食物組合</button>
@@ -416,6 +412,7 @@
       { name: '長豆(豇豆)', category: '蔬菜菌菇', icon: '🥬' },
       { name: '黑木耳', category: '蔬菜菌菇', icon: '🍄' },
       { name: '白木耳', category: '蔬菜菌菇', icon: '⚪' },
+      { name: '空心菜', category: '蔬菜菌菇', icon: '🥬' },
       { name: '絲瓜', category: '蔬菜菌菇', icon: '🥒' },
       { name: '小黃瓜', category: '蔬菜菌菇', icon: '🥒' },
       { name: '冬瓜', category: '蔬菜菌菇', icon: '🍈' },
@@ -423,6 +420,7 @@
       { name: '番茄', category: '蔬菜菌菇', icon: '🍅' },
       { name: '洋蔥', category: '蔬菜菌菇', icon: '🧅' },
       { name: '香菇', category: '蔬菜菌菇', icon: '🍄' },
+      { name: '柿子', category: '水果', icon: '🍅' },
       { name: '蘋果', category: '水果', icon: '🍎' },
       { name: '香蕉', category: '水果', icon: '🍌' },
       { name: '水梨', category: '水果', icon: '🍐' },
@@ -441,6 +439,7 @@
       { name: '板豆腐', category: '蛋豆魚肉乳', icon: '🧊' },
       { name: '豆漿', category: '蛋豆魚肉乳', icon: '🥛' },
       { name: '雞胸肉', category: '蛋豆魚肉乳', icon: '🍗' },
+      { name: '豬肉', category: '蛋豆魚肉乳', icon: '🥩' },
       { name: '豬絞肉', category: '蛋豆魚肉乳', icon: '🥩' },
       { name: '牛絞肉', category: '蛋豆魚肉乳', icon: '🥩' },
       { name: '鮭魚', category: '蛋豆魚肉乳', icon: '🐟' },
@@ -454,11 +453,12 @@
     ];
 
     const DEFAULT_COMBOS = [
-      { id: 'combo_1', name: '蘋果優格', ingredients: ['蘋果', '優格'] }
+      { id: 'combo_pork_porridge', name: '豬肉粥', ingredients: ['白米', '豬肉'] }
     ];
 
     let appData = { syncCode: 'huehue', meals: [], foods: DEFAULT_FOOD_DATABASE, combos: DEFAULT_COMBOS, foodStatus: {} };
     let selectedMealIngredients = [];
+    let currentChosenComboName = '';
     let activePickerCategory = 'combo';
     let activeLibraryCategory = 'countSort';
     let calendarCurrentDate = new Date();
@@ -666,6 +666,18 @@
       renderDailyCards();
     }
 
+    /* 格式化顯示時間：如 上午 10:54 或 下午 3:32 */
+    function formatMealDisplayTime(timeStr) {
+      if (!timeStr) return '';
+      const [h, m] = timeStr.split(':');
+      let hour = parseInt(h, 10);
+      const ampm = hour < 12 ? '上午' : '下午';
+      if (hour > 12) hour -= 12;
+      if (hour === 0) hour = 12;
+      return `${ampm} ${hour}:${m}`;
+    }
+
+    /* 按日視圖渲染：精準還原截圖格式 */
     function renderDailyCards() {
       const container = document.getElementById('dailyCardsContainer');
       const targetDate = document.getElementById('dailyDateFilter').value;
@@ -679,57 +691,86 @@
 
       if (dayMeals.length === 0) {
         container.innerHTML = `
-          <div class="bg-white rounded-2xl p-5 text-center border border-slate-200 text-slate-400 space-y-2">
-            <div class="text-2xl">🥣</div>
-            <p class="font-medium text-xs text-slate-600">${targetDate} 尚無副食品紀錄</p>
-            <button onclick="openMealModal(null, '${targetDate}')" class="bg-emerald-600 text-white px-3 py-1 rounded-lg text-xs font-bold shadow-xs hover:bg-emerald-700">+ 新增餐點</button>
+          <div class="bg-white rounded-3xl p-8 text-center border border-slate-100 text-slate-400 space-y-3 shadow-xs">
+            <div class="text-3xl">🥣</div>
+            <p class="font-bold text-sm text-slate-600">${targetDate} 尚無副食品紀錄</p>
+            <button onclick="openMealModal(null, '${targetDate}')" class="bg-teal-600 text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-xs hover:bg-teal-700">+ 新增餐點</button>
           </div>`;
         return;
       }
 
       let html = '';
       dayMeals.forEach(meal => {
-        let ingredientsChipsHtml = (meal.ingredients || []).map(item => {
-          const ingName = typeof item === 'string' ? item : item.name;
-          const isFirstEverOccur = earliestMap[ingName] === meal.date;
-          const foodObj = appData.foods.find(f => f.name === ingName) || {};
-          const status = appData.foodStatus[ingName] || 'normal';
+        const timeDisplay = formatMealDisplayTime(meal.time);
+        const isCombo = !!meal.comboName;
+        
+        // 判斷是否包含新嘗試食材
+        let hasNewIngredient = false;
+        (meal.ingredients || []).forEach(i => {
+          const ingName = typeof i === 'string' ? i : i.name;
+          if (earliestMap[ingName] === meal.date) hasNewIngredient = true;
+        });
 
-          let statusTag = '';
-          if (status === 'like') statusTag = '<span class="text-[9px] text-rose-600 font-bold ml-0.5">❤️</span>';
-          else if (status === 'dislike') statusTag = '<span class="text-[9px] text-amber-700 font-bold ml-0.5">🤢</span>';
-          else if (status === 'allergy') statusTag = '<span class="bg-rose-600 text-black text-[9px] font-black px-1 py-0.2 rounded ml-0.5">❌過敏</span>';
+        // 縮圖與主要顯示文字
+        let mainName = '';
+        let iconHtml = '';
 
-          return `
-            <div class="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs">
-              <span>${foodObj.icon || '🥦'}</span>
-              <span class="font-bold text-slate-800">${escapeHtml(ingName)}</span>
-              ${isFirstEverOccur ? '<span class="bg-amber-400 text-slate-900 font-extrabold text-[8px] px-1 rounded">✨新嘗試</span>' : ''}
-              ${statusTag}
-            </div>`;
-        }).join('');
+        if (isCombo) {
+          mainName = meal.comboName;
+          // 食物組合微縮圖
+          const miniIcons = (meal.ingredients || []).slice(0, 2).map(i => {
+            const ingName = typeof i === 'string' ? i : i.name;
+            const fObj = appData.foods.find(f => f.name === ingName) || {};
+            return `<span class="text-xs">${fObj.icon || '🥦'}</span>`;
+          }).join('');
+          iconHtml = `<div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center gap-0.5 shadow-2xs">${miniIcons}</div>`;
+        } else {
+          const singleIng = (meal.ingredients || [])[0];
+          const ingName = typeof singleIng === 'string' ? singleIng : (singleIng ? singleIng.name : '食材');
+          mainName = ingName;
+          const fObj = appData.foods.find(f => f.name === ingName) || {};
+          iconHtml = `<div class="w-10 h-10 rounded-xl bg-amber-50/70 border border-amber-100/50 flex items-center justify-center text-xl shadow-2xs">${fObj.icon || '🥦'}</div>`;
+        }
+
+        // 質地簡寫 (如「泥」)
+        let textureShort = '';
+        if (meal.texture) {
+          if (meal.texture.includes('泥')) textureShort = '泥';
+          else if (meal.texture.includes('粥')) textureShort = '粥';
+          else if (meal.texture.includes('軟飯')) textureShort = '軟飯';
+          else textureShort = meal.texture.split('/')[0].trim();
+        }
 
         html += `
-          <div class="bg-white rounded-2xl p-3 border border-slate-200 shadow-xs space-y-2">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-1.5">
-              <div class="flex items-center gap-1.5">
-                <span class="bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded-md font-bold">${meal.type || '餐點'}</span>
-                <span class="text-slate-500 font-semibold text-[11px]"><i class="fa-regular fa-clock text-[9px]"></i> ${meal.time || '--:--'}</span>
-                ${meal.weight ? `<span class="text-slate-400 text-[10px]">（${meal.weight} g/ml）</span>` : ''}
-              </div>
+          <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-100 shadow-sm space-y-3">
+            <!-- 頂部時間與更多選單按鈕 -->
+            <div class="flex items-center justify-between">
+              <span class="text-base sm:text-lg font-black text-slate-900 tracking-tight">${timeDisplay}</span>
               <div class="flex items-center gap-1">
-                <button onclick="editMeal('${meal.id}')" class="text-slate-400 hover:text-emerald-600 p-1" title="編輯"><i class="fa-solid fa-pen-to-square text-[11px]"></i></button>
-                <button onclick="deleteMeal('${meal.id}')" class="text-slate-400 hover:text-rose-600 p-1" title="刪除"><i class="fa-solid fa-trash-can text-[11px]"></i></button>
+                <button onclick="editMeal('${meal.id}')" class="text-slate-300 hover:text-slate-600 p-1 text-base" title="編輯"><i class="fa-solid fa-ellipsis"></i></button>
+                <button onclick="deleteMeal('${meal.id}')" class="text-slate-300 hover:text-rose-500 p-1 text-xs" title="刪除"><i class="fa-solid fa-trash-can"></i></button>
               </div>
             </div>
 
-            <div class="flex flex-wrap gap-1.5">${ingredientsChipsHtml}</div>
+            <!-- 食物本體內容 -->
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                ${iconHtml}
+                <div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="font-extrabold text-base sm:text-lg text-slate-800">${escapeHtml(mainName)}</span>
+                    ${hasNewIngredient ? '<span class="bg-amber-300 text-slate-900 font-black text-[11px] px-1.5 py-0.2 rounded-md leading-tight">新</span>' : ''}
+                  </div>
+                  ${textureShort ? `<div class="text-xs font-bold text-slate-400 mt-0.5">${escapeHtml(textureShort)}</div>` : ''}
+                  ${isCombo ? `<div class="text-[10px] text-slate-400 font-medium">包含: ${(meal.ingredients || []).map(i => typeof i === 'string' ? i : i.name).join('、')}</div>` : ''}
+                </div>
+              </div>
 
-            ${(meal.texture || meal.notes) ? `
-              <div class="bg-slate-50 px-2 py-1 rounded-lg border border-slate-100 text-[10px] text-slate-600 flex flex-wrap items-center gap-2">
-                ${meal.texture ? `<span><b>質地:</b> ${escapeHtml(meal.texture)}</span>` : ''}
-                ${meal.notes ? `<span class="truncate"><b>備註:</b> ${escapeHtml(meal.notes)}</span>` : ''}
-              </div>` : ''}
+              <!-- 右側可愛小熊頭像圖標 (如截圖) -->
+              <div class="w-9 h-9 rounded-full bg-sky-50 border border-sky-100 flex items-center justify-center text-slate-500 text-lg shadow-2xs">
+                🐻
+              </div>
+            </div>
           </div>`;
       });
 
@@ -766,6 +807,7 @@
       }
     }
 
+    /* 按月日曆渲染：食物組合呈現組合名（如截圖中 9/2 呈現「豬肉粥」、「柿子」） */
     function renderCalendar() {
       const year = calendarCurrentDate.getFullYear();
       const month = calendarCurrentDate.getMonth();
@@ -776,7 +818,6 @@
       const grid = document.getElementById('calendarGrid');
       grid.innerHTML = '';
 
-      const earliestMap = getEarliestDateMap();
       const todayStr = getLocalDateString();
 
       for (let i = 0; i < firstDay; i++) {
@@ -787,39 +828,47 @@
         const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         const dayMeals = appData.meals.filter(m => m.date === dateStr);
 
-        const dayIngredients = [];
-        const seenSet = new Set();
-
-        dayMeals.forEach(m => {
-          (m.ingredients || []).forEach(i => {
-            const ingName = typeof i === 'string' ? i : i.name;
-            if (!seenSet.has(ingName)) {
-              seenSet.add(ingName);
-              dayIngredients.push(ingName);
-            }
-          });
+        // 整理要呈現在日曆格中的標籤清單（優先呈現組合名稱，非組合才呈現個別食材）
+        const displayItems = [];
+        dayMeals.forEach(meal => {
+          if (meal.comboName) {
+            displayItems.push({ name: meal.comboName, type: 'combo' });
+          } else {
+            (meal.ingredients || []).forEach(i => {
+              const ingName = typeof i === 'string' ? i : i.name;
+              displayItems.push({ name: ingName, type: 'food' });
+            });
+          }
         });
 
-        let ingredientsChipsHtml = dayIngredients.map(ingName => {
-          const status = appData.foodStatus[ingName] || 'normal';
-          const isFirstEverOccur = earliestMap[ingName] === dateStr;
-          const foodObj = appData.foods.find(f => f.name === ingName) || {};
-          const cat = foodObj.category || '海藻其他';
+        // 避免同名重複
+        const seen = new Set();
+        const uniqueItems = displayItems.filter(item => {
+          if (seen.has(item.name)) return false;
+          seen.add(item.name);
+          return true;
+        });
 
-          let catClass = 'cat-other';
-          if (status === 'allergy') catClass = 'cat-allergy';
-          else if (cat === '穀物澱粉') catClass = 'cat-grain';
-          else if (cat === '蔬菜菌菇') catClass = 'cat-veg';
-          else if (cat === '水果') catClass = 'cat-fruit';
-          else if (cat === '蛋豆魚肉乳') catClass = 'cat-meat';
+        let ingredientsChipsHtml = uniqueItems.map(item => {
+          if (item.type === 'combo') {
+            return `<div class="w-full bg-slate-100/90 text-slate-800 font-bold px-0.5 py-0.5 rounded-md text-[8px] sm:text-[10px] text-center border border-slate-200 shadow-2xs whitespace-nowrap tracking-tighter">${escapeHtml(item.name)}</div>`;
+          } else {
+            const foodObj = appData.foods.find(f => f.name === item.name) || {};
+            const cat = foodObj.category || '海藻其他';
+            let catClass = 'cat-other';
+            if (cat === '穀物澱粉') catClass = 'cat-grain';
+            else if (cat === '蔬菜菌菇') catClass = 'cat-veg';
+            else if (cat === '水果') catClass = 'cat-fruit';
+            else if (cat === '蛋豆魚肉乳') catClass = 'cat-meat';
 
-          return `<div class="w-full ${catClass} ${isFirstEverOccur ? 'is-first-new' : ''} px-0.5 py-0.5 rounded-md text-[8px] sm:text-[10px] text-center border shadow-2xs whitespace-nowrap tracking-tighter">${escapeHtml(ingName)}${isFirstEverOccur ? '✨' : ''}</div>`;
+            return `<div class="w-full ${catClass} px-0.5 py-0.5 rounded-md text-[8px] sm:text-[10px] text-center border shadow-2xs whitespace-nowrap tracking-tighter">${escapeHtml(item.name)}</div>`;
+          }
         }).join('');
 
         const isToday = dateStr === todayStr;
         grid.innerHTML += `
-          <div onclick="jumpToDateFromCalendar('${dateStr}')" class="rounded-2xl ${isToday ? 'bg-emerald-50/50 border-2 border-emerald-500' : 'bg-white border border-slate-100'} p-0.5 sm:p-1 min-h-[60px] h-auto flex flex-col items-center justify-start cursor-pointer transition-all hover:border-emerald-300">
-            <span class="text-xs sm:text-sm font-black text-slate-800 mb-0.5 ${isToday ? 'text-emerald-700 font-extrabold' : ''}">${d}</span>
+          <div onclick="jumpToDateFromCalendar('${dateStr}')" class="rounded-2xl ${isToday ? 'bg-teal-50/70 border-2 border-teal-500' : 'bg-white border border-slate-100'} p-0.5 sm:p-1 min-h-[60px] h-auto flex flex-col items-center justify-start cursor-pointer transition-all hover:border-teal-300">
+            <span class="text-xs sm:text-sm font-black mb-0.5 ${isToday ? 'bg-teal-600 text-white rounded-md px-1.5 py-0.2 leading-tight' : 'text-slate-800'}">${d}</span>
             <div class="space-y-0.5 w-full">${ingredientsChipsHtml}</div>
           </div>`;
       }
@@ -1094,7 +1143,6 @@
       }
     }
 
-    /* 徹底刪除食材 */
     function deleteCurrentFood() {
       const foodName = document.getElementById('editingFoodOldName').value;
       if (!foodName) return;
@@ -1126,12 +1174,14 @@
         document.getElementById('modalHeaderLabel').innerText = '編輯餐點紀錄';
         document.getElementById('submitMealBtnLabel').innerText = '儲存修改內容';
         document.getElementById('editingMealId').value = mealToEdit.id;
+        document.getElementById('mealComboName').value = mealToEdit.comboName || '';
         document.getElementById('mealDate').value = mealToEdit.date;
         document.getElementById('mealTime').value = mealToEdit.time || '09:00';
         document.getElementById('mealType').value = mealToEdit.type || '早餐';
         document.getElementById('mealWeight').value = mealToEdit.weight || '';
         document.getElementById('mealTexture').value = mealToEdit.texture || '十倍粥 / 米湯';
-        document.getElementById('mealNotes').value = mealNotes.value || '';
+        document.getElementById('mealNotes').value = mealToEdit.notes || '';
+        currentChosenComboName = mealToEdit.comboName || '';
 
         selectedMealIngredients = (mealToEdit.ingredients || []).map(item => {
           const ingName = typeof item === 'string' ? item : item.name;
@@ -1141,8 +1191,10 @@
         document.getElementById('modalHeaderLabel').innerText = '紀錄餐點食材';
         document.getElementById('submitMealBtnLabel').innerText = '儲存餐點紀錄';
         document.getElementById('editingMealId').value = '';
+        document.getElementById('mealComboName').value = '';
         document.getElementById('mealDate').value = presetDate || document.getElementById('dailyDateFilter').value || getLocalDateString();
         document.getElementById('mealTime').value = '09:00';
+        currentChosenComboName = '';
         autoUpdateMealTypeByTime();
         selectedMealIngredients = [];
       }
@@ -1210,6 +1262,8 @@
     function applyCombo(comboId) {
       const combo = (appData.combos || []).find(c => c.id === comboId);
       if (combo) {
+        currentChosenComboName = combo.name;
+        document.getElementById('mealComboName').value = combo.name;
         combo.ingredients.forEach(ingName => {
           if (!selectedMealIngredients.some(i => i.name === ingName)) {
             selectedMealIngredients.push({ name: ingName });
@@ -1226,7 +1280,7 @@
         alert('請先選取要打包的食材！');
         return;
       }
-      const comboName = prompt('請輸入食物組合名稱（例如：蘋果優格、牛肉菠菜粥）：');
+      const comboName = prompt('請輸入食物組合名稱（例如：豬肉粥、蘋果優格）：');
       if (comboName && comboName.trim()) {
         if (!appData.combos) appData.combos = [];
         appData.combos.push({
@@ -1257,6 +1311,9 @@
       } else {
         selectedMealIngredients.push({ name: name });
       }
+      // 手動單獨挑選食材時，清空當前的組合名稱標籤
+      currentChosenComboName = '';
+      document.getElementById('mealComboName').value = '';
       document.getElementById('pickerSearchInput').value = '';
       renderSelectedIngredientsList();
       renderPickerChips();
@@ -1266,6 +1323,13 @@
       const container = document.getElementById('selectedIngredientsList');
       document.getElementById('selectedIngredientsCount').innerText = `${selectedMealIngredients.length} 項`;
       
+      const summaryLabel = document.getElementById('selectedIngredientsSummaryLabel');
+      if (currentChosenComboName) {
+        summaryLabel.innerHTML = `已選擇組合：<span class="bg-amber-100 text-amber-900 px-1.5 py-0.2 rounded font-black text-xs">${escapeHtml(currentChosenComboName)}</span>`;
+      } else {
+        summaryLabel.innerText = '已選擇食材：';
+      }
+
       container.innerHTML = selectedMealIngredients.map((item, index) => {
         const currentStatus = appData.foodStatus[item.name] || 'normal';
         return `
@@ -1303,6 +1367,7 @@
       const editingId = document.getElementById('editingMealId').value;
       const mealData = {
         id: editingId || ('meal_' + Date.now()),
+        comboName: document.getElementById('mealComboName').value || currentChosenComboName || '',
         date: document.getElementById('mealDate').value,
         time: document.getElementById('mealTime').value,
         type: document.getElementById('mealType').value,
@@ -1338,8 +1403,8 @@
     }
 
     function updateBadges() {
-      const triedSet = new Set();
-      appData.meals.forEach(m => (m.ingredients || []).forEach(i => triedSet.add(typeof i === 'string' ? i : i.name)));
+      const countMap = getIngredientCountMap();
+      const triedSet = new Set(Object.keys(countMap));
       document.getElementById('libraryCountBadge').innerText = triedSet.size;
     }
 

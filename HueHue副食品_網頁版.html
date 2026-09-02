@@ -2,72 +2,123 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Hue Hue 寶貝副食品萬年曆 & 試敏追蹤器</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAYPVSigJRiLJUkWPrgQtP3LjYTVtA1Pko",
+      authDomain: "huehue-babyfood.firebaseapp.com",
+      databaseURL: "https://huehue-babyfood-default-rtdb.firebaseio.com",
+      projectId: "huehue-babyfood",
+      storageBucket: "huehue-babyfood.firebasestorage.app",
+      messagingSenderId: "145918754503",
+      appId: "1:145918754503:web:14cc2f0c5df4cfdb9d88e2",
+      measurementId: "G-LT4J4F4Q73"
+    };
+
+    try {
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+      window.db = db;
+      window.dbRef = ref;
+      window.dbOnValue = onValue;
+      window.dbSet = set;
+      window.firebaseInitialized = true;
+    } catch (e) {
+      console.error("Firebase init failed:", e);
+    }
+  </script>
+
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap');
-    body {
-      font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: #f8fafc;
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&display=swap');
+    body { font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #f8fafc; -webkit-text-size-adjust: 100%; }
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+    /* 莫蘭迪柔和色系膠囊 */
+    .cat-grain { background-color: #fef9c3; color: #713f12; border-color: #fef08a; }
+    .cat-veg   { background-color: #dcfce7; color: #14532d; border-color: #bbf7d0; }
+    .cat-fruit { background-color: #ffe4e6; color: #881337; border-color: #fecdd3; }
+    .cat-meat  { background-color: #ffedd5; color: #7c2d12; border-color: #fed7aa; }
+    .cat-combo { background-color: #f1f5f9; color: #1e293b; border-color: #cbd5e1; font-weight: 800; }
+    .cat-other { background-color: #e0f2fe; color: #0c4a6e; border-color: #bae6fd; }
+    .cat-allergy { background-color: #f87171; color: #ffffff; border-color: #dc2626; font-weight: 900; }
+
+    /* 按月單餐外框 */
+    .calendar-meal-group {
+      background-color: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 2px;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+      width: 100%;
     }
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: #f1f5f9;
-      border-radius: 4px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 4px;
+
+    .cal-chip {
+      word-break: break-all;
+      overflow-wrap: break-word;
+      white-space: normal !important;
+      line-height: 1.15;
     }
   </style>
 </head>
-<body class="text-slate-800 antialiased min-h-screen flex flex-col pb-12">
+<body class="text-slate-800 antialiased min-h-screen flex flex-col pb-8">
 
   <!-- 頂部導覽列 -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between flex-wrap gap-3">
-      <div class="flex items-center gap-3">
-        <span class="text-3xl">👶</span>
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+    <div class="max-w-7xl mx-auto px-2.5 sm:px-6 py-2 flex items-center justify-between flex-wrap gap-1.5">
+      <div class="flex items-center gap-2">
+        <span class="text-xl sm:text-2xl">👶</span>
         <div>
-          <h1 class="font-bold text-xl text-slate-800 leading-tight">Hue Hue 寶貝試敏日誌</h1>
-          <p class="text-xs text-slate-500">雲端同步 ‧ 全家共享高清版</p>
+          <div class="flex items-center gap-2 flex-wrap">
+            <h1 class="font-bold text-base sm:text-lg text-slate-800 leading-tight">Hue Hue 試敏日誌</h1>
+            <span id="babyAgeBadge" class="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-extrabold shadow-2xs">算月中...</span>
+          </div>
+          <p class="text-[9px] sm:text-xs text-slate-500">雲端同步 ‧ 全家共享版</p>
         </div>
       </div>
 
       <!-- 視圖切換按鈕 -->
-      <div class="flex items-center bg-slate-100 p-1.5 rounded-xl text-sm font-medium">
-        <button id="viewBtnDaily" onclick="switchView('daily')" class="px-4 py-2 rounded-lg transition-all flex items-center gap-2 bg-white shadow-sm text-emerald-700 font-semibold">
-          <i class="fa-solid font-bold fa-list-ul"></i> 按日卡片
+      <div class="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-medium overflow-x-auto custom-scrollbar">
+        <button id="viewBtnDaily" onclick="switchView('daily')" class="px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 bg-white shadow-xs text-emerald-700 font-semibold whitespace-nowrap">
+          <i class="fa-solid text-[10px] fa-list-ul"></i> 按日
         </button>
-        <button id="viewBtnCalendar" onclick="switchView('calendar')" class="px-4 py-2 rounded-lg transition-all flex items-center gap-2 text-slate-600 hover:text-slate-900">
-          <i class="fa-regular fa-calendar-days"></i> 按月日曆
+        <button id="viewBtnCalendar" onclick="switchView('calendar')" class="px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900 whitespace-nowrap">
+          <i class="fa-regular text-[10px] fa-calendar-days"></i> 按月
         </button>
-        <button id="viewBtnLibrary" onclick="switchView('library')" class="px-4 py-2 rounded-lg transition-all flex items-center gap-2 text-slate-600 hover:text-slate-900">
-          <i class="fa-solid fa-carrot"></i> 食材庫 <span id="libraryCountBadge" class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+        <button id="viewBtnAnalysis" onclick="switchView('analysis')" class="px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900 whitespace-nowrap">
+          <i class="fa-solid text-[10px] fa-chart-pie"></i> 分析
+        </button>
+        <button id="viewBtnLibrary" onclick="switchView('library')" class="px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900 whitespace-nowrap">
+          <i class="fa-solid text-[10px] fa-carrot"></i> 食材庫 <span id="libraryCountBadge" class="bg-emerald-100 text-emerald-800 text-[9px] px-1.5 py-0.2 rounded-full font-bold">0</span>
         </button>
       </div>
     </div>
 
     <!-- 雲端同步與工具列 -->
-    <div class="bg-slate-50 border-t border-slate-100 px-4 sm:px-6 py-2.5">
-      <div class="max-w-7xl mx-auto flex items-center justify-between text-xs text-slate-600 flex-wrap gap-2">
-        <div class="flex items-center gap-2">
-          <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-lg border border-emerald-200 font-semibold text-xs">
-            <i class="fa-solid fa-cloud"></i> 家庭同步碼: <span id="syncCodeDisplay" class="font-bold">huehue</span>
+    <div class="bg-slate-50 border-t border-slate-100 px-2.5 sm:px-6 py-1.5">
+      <div class="max-w-7xl mx-auto flex items-center justify-between text-xs text-slate-600 flex-wrap gap-1.5">
+        <div class="flex items-center gap-1.5">
+          <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-lg border border-emerald-200 font-semibold text-[10px]">
+            <i class="fa-solid fa-cloud text-[9px]"></i> 同步碼: <span id="syncCodeDisplay" class="font-bold">huehue</span>
           </span>
-          <button onclick="promptChangeSyncCode()" class="text-slate-500 hover:text-slate-800 underline">修改同步碼</button>
+          <button onclick="promptChangeSyncCode()" class="text-slate-500 hover:text-slate-800 underline text-[10px]">修改</button>
+          <span id="cloudStatusBadge" class="bg-amber-100 text-amber-800 text-[9px] px-1.5 py-0.5 rounded font-bold">連線中...</span>
         </div>
 
-        <div class="flex items-center gap-3">
-          <button onclick="openMealModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 rounded-xl font-bold shadow-sm transition-all flex items-center gap-1.5 text-xs">
-            <i class="fa-solid fa-plus text-sm"></i> 新增餐點紀錄
+        <div class="flex items-center gap-1.5">
+          <button onclick="openMealModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-xl font-bold shadow-xs transition-all flex items-center gap-1 text-xs">
+            <i class="fa-solid fa-plus text-[10px]"></i> 新增餐點
           </button>
         </div>
       </div>
@@ -75,162 +126,267 @@
   </header>
 
   <!-- 主要內容區 -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 pt-6 flex-1 w-full">
+  <main class="max-w-7xl mx-auto px-2.5 sm:px-6 pt-2.5 flex-1 w-full">
 
-    <!-- 1. 按日卡片視圖 -->
-    <section id="viewDaily" class="space-y-4">
-      <div class="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex-wrap gap-3">
-        
-        <div class="flex items-center gap-2 flex-wrap">
-          <button onclick="shiftDailyDate(-1)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-all flex items-center gap-1">
-            <i class="fa-solid fa-chevron-left text-[10px]"></i> 前一天
+    <!-- 1. 按日視圖 -->
+    <section id="viewDaily" class="space-y-3">
+      <div class="flex items-center justify-between bg-white px-3 py-2 rounded-2xl border border-slate-200 shadow-xs flex-wrap gap-1.5">
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <button onclick="shiftDailyDate(-1)" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold text-xs transition-all flex items-center gap-1">
+            <i class="fa-solid fa-chevron-left text-[8px]"></i> 前一天
           </button>
-
-          <input type="date" id="dailyDateFilter" onchange="renderDailyCards()" class="border border-slate-300 rounded-xl px-3 py-1.5 text-sm font-bold bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
-
-          <button onclick="shiftDailyDate(1)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-all flex items-center gap-1">
-            後一天 <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          <input type="date" id="dailyDateFilter" onchange="renderDailyCards()" class="border border-slate-300 rounded-lg px-2 py-0.5 text-xs font-bold bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500">
+          <button onclick="shiftDailyDate(1)" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold text-xs transition-all flex items-center gap-1">
+            後一天 <i class="fa-solid fa-chevron-right text-[8px]"></i>
           </button>
-
-          <button id="btnJumpToToday" onclick="resetDailyDateToToday()" class="hidden bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-300 px-3 py-1.5 rounded-xl font-extrabold text-xs transition-all flex items-center gap-1 shadow-sm">
-            <i class="fa-solid fa-rotate-left"></i> 回今天
+          <button id="btnJumpToToday" onclick="resetDailyDateToToday()" class="hidden bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-300 px-2 py-1 rounded-lg font-extrabold text-xs transition-all flex items-center gap-1 shadow-xs">
+            <i class="fa-solid fa-rotate-left text-[9px]"></i> 今日
           </button>
-        </div>
-
-        <div class="text-xs text-slate-500 font-medium">
-          💡 快捷導覽：點選左右箭頭即可快速切換前後日觀看紀錄
         </div>
       </div>
-
       <div id="dailyCardsContainer" class="space-y-4"></div>
     </section>
 
-    <!-- 2. 按月日曆視圖 (已強化黃色底色標籤與「新」字樣) -->
-    <section id="viewCalendar" class="hidden space-y-4">
-      <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-        <div class="flex items-center justify-between mb-6">
-          <button onclick="changeMonth(-1)" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 text-sm font-bold transition-all">
-            <i class="fa-solid fa-chevron-left"></i> 上個月
-          </button>
-          <h2 id="calendarMonthTitle" class="text-xl sm:text-2xl font-extrabold text-slate-800">2026 年 8 月</h2>
-          <button onclick="changeMonth(1)" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 text-sm font-bold transition-all">
-            下個月 <i class="fa-solid fa-chevron-right"></i>
-          </button>
+    <!-- 2. 按月視圖 -->
+    <section id="viewCalendar" class="hidden space-y-3">
+      <div class="bg-white p-2 sm:p-5 rounded-3xl border border-slate-200 shadow-xs">
+        <div class="flex items-center justify-between mb-3">
+          <button onclick="changeMonth(-1)" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 text-xs font-bold transition-all"><i class="fa-solid fa-chevron-left"></i> 上個月</button>
+          <h2 id="calendarMonthTitle" class="text-base sm:text-xl font-extrabold text-slate-800">2026 年 8 月</h2>
+          <button onclick="changeMonth(1)" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 text-xs font-bold transition-all">下個月 <i class="fa-solid fa-chevron-right"></i></button>
         </div>
-
-        <div class="grid grid-cols-7 gap-2 text-center font-bold text-slate-600 text-sm py-3 border-b border-slate-200 bg-slate-50/80 rounded-t-xl">
-          <div class="text-rose-600">週日</div><div>週一</div><div>週二</div><div>週三</div><div>週四</div><div>週五</div><div class="text-emerald-700">週六</div>
+        <div class="grid grid-cols-7 gap-1 text-center font-bold text-slate-400 text-[11px] sm:text-xs py-1.5 border-b border-slate-100">
+          <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
         </div>
-
-        <div id="calendarGrid" class="grid grid-cols-7 gap-2 mt-2"></div>
+        <div id="calendarGrid" class="grid grid-cols-7 gap-1 mt-2 items-start"></div>
       </div>
     </section>
 
-    <!-- 3. 食材庫視圖 -->
-    <section id="viewLibrary" class="hidden space-y-4">
-      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-        <div class="flex items-center justify-between flex-wrap gap-3">
-          <h2 class="font-bold text-slate-800 text-lg flex items-center gap-2">
-            <span class="text-2xl">🥦</span> 食材解鎖圖鑑
-          </h2>
-          <div class="flex items-center gap-3">
-            <span class="bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-bold" id="unlockedStatsText">解鎖 0 / 100+ 種</span>
-            <span class="bg-rose-100 text-rose-800 text-xs px-3 py-1 rounded-full font-bold" id="allergyStatsText">過敏 0 種</span>
+    <!-- 3. 紀錄分析視圖 -->
+    <section id="viewAnalysis" class="hidden space-y-3">
+      <div class="bg-slate-900 text-white p-4 sm:p-6 rounded-3xl space-y-5 shadow-xl border border-slate-800">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <button onclick="shiftAnalysisWeek(-1)" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-chevron-left"></i></button>
+          <span id="analysisWeekTitle" class="font-extrabold text-base sm:text-lg tracking-wide text-amber-400">7/13 - 7/19</span>
+          <button onclick="shiftAnalysisWeek(1)" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+
+        <div class="space-y-3">
+          <h3 class="font-bold text-sm sm:text-base text-slate-200 flex items-center gap-2">
+            <span>🥗</span> 副食品種類分析
+          </h3>
+          <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700/60 flex items-center justify-between flex-wrap gap-4">
+            <div class="relative w-28 h-28 flex items-center justify-center mx-auto sm:mx-0">
+              <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                <path class="text-slate-700" stroke-width="3.8" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <path id="piePathGrain" class="text-amber-400" stroke-width="3.8" stroke-dasharray="0, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <path id="piePathVeg" class="text-emerald-400" stroke-width="3.8" stroke-dasharray="0, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                <span id="analysisTotalWeight" class="text-base font-black text-white">0</span>
+                <span class="text-[9px] text-slate-400 font-bold">總克數 (g)</span>
+              </div>
+            </div>
+
+            <div id="analysisCategoryList" class="flex-1 space-y-2 min-w-[160px]"></div>
           </div>
         </div>
 
-        <div class="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar text-xs font-medium" id="libraryCategoryTabs">
-          <button onclick="filterLibraryCategory('all')" class="lib-tab active px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold whitespace-nowrap shadow-sm">全部食材</button>
-          <button onclick="filterLibraryCategory('穀物澱粉')" class="lib-tab px-4 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🌾 穀物澱粉</button>
-          <button onclick="filterLibraryCategory('蔬菜菌菇')" class="lib-tab px-4 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🥦 蔬菜菌菇</button>
-          <button onclick="filterLibraryCategory('水果')" class="lib-tab px-4 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🍎 水果類</button>
-          <button onclick="filterLibraryCategory('蛋豆魚肉乳')" class="lib-tab px-4 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🥩 蛋豆魚肉乳</button>
-          <button onclick="filterLibraryCategory('海藻其他')" class="lib-tab px-4 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🌿 海藻其他</button>
+        <div class="space-y-3 pt-2">
+          <h3 class="font-bold text-sm sm:text-base text-slate-200 flex items-center gap-2">
+            <span>⚡</span> 關鍵營養素估算
+          </h3>
+          <div class="grid grid-cols-2 gap-2.5">
+            <div class="bg-emerald-950/40 border border-emerald-800/40 p-3 rounded-2xl space-y-1">
+              <div class="text-emerald-400 text-xs font-bold flex items-center gap-1">🍃 膳食纖維</div>
+              <div class="text-lg font-black text-white"><span id="nutriFiber">0.0</span> <span class="text-xs text-slate-400 font-normal">g</span></div>
+            </div>
+            <div class="bg-amber-950/40 border border-amber-800/40 p-3 rounded-2xl space-y-1">
+              <div class="text-amber-400 text-xs font-bold flex items-center gap-1">👌 蛋白質</div>
+              <div class="text-lg font-black text-white"><span id="nutriProtein">0.0</span> <span class="text-xs text-slate-400 font-normal">g</span></div>
+            </div>
+            <div class="bg-sky-950/40 border border-sky-800/40 p-3 rounded-2xl space-y-1">
+              <div class="text-sky-400 text-xs font-bold flex items-center gap-1">💧 鈣質</div>
+              <div class="text-lg font-black text-white"><span id="nutriCalcium">0.0</span> <span class="text-xs text-slate-400 font-normal">mg</span></div>
+            </div>
+            <div class="bg-rose-950/40 border border-rose-800/40 p-3 rounded-2xl space-y-1">
+              <div class="text-rose-400 text-xs font-bold flex items-center gap-1">⚡ 鐵質</div>
+              <div class="text-lg font-black text-white"><span id="nutriIron">0.0</span> <span class="text-xs text-slate-400 font-normal">mg</span></div>
+            </div>
+            <div class="bg-purple-950/40 border border-purple-800/40 p-3 rounded-2xl space-y-1">
+              <div class="text-purple-400 text-xs font-bold flex items-center gap-1">👁️ 維生素 A</div>
+              <div class="text-lg font-black text-white"><span id="nutriVitA">0.0</span> <span class="text-xs text-slate-400 font-normal">IU</span></div>
+            </div>
+            <div class="bg-yellow-950/40 border border-yellow-800/40 p-3 rounded-2xl space-y-1">
+              <div class="text-yellow-400 text-xs font-bold flex items-center gap-1">☀️ 維生素 C</div>
+              <div class="text-lg font-black text-white"><span id="nutriVitC">0.0</span> <span class="text-xs text-slate-400 font-normal">mg</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. 食材庫視圖 -->
+    <section id="viewLibrary" class="hidden space-y-2.5">
+      <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-xs space-y-2">
+        <div class="flex items-center justify-between flex-wrap gap-1.5">
+          <h2 class="font-bold text-slate-800 text-sm flex items-center gap-1"><span>🥦</span> 食材解鎖圖鑑</h2>
+          <div class="flex items-center gap-1 text-[11px]">
+            <span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold" id="unlockedStatsText">解鎖 0 / 100+ 種</span>
+            <span class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full font-bold" id="allergyStatsText">❌ 過敏 0 種</span>
+          </div>
+        </div>
+        <div id="libraryCategoryBar" class="flex items-center gap-1 overflow-x-auto pb-0.5 custom-scrollbar text-xs font-medium">
+          <button onclick="filterLibraryCategory('countSort')" id="libCatBtn_countSort" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🔥 食用次數榜</button>
+          <button onclick="filterLibraryCategory('unlocked')" id="libCatBtn_unlocked" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">✨ 已解鎖</button>
+          <button onclick="filterLibraryCategory('all')" id="libCatBtn_all" class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-bold whitespace-nowrap shadow-xs">全部食材</button>
+          <button onclick="filterLibraryCategory('穀物澱粉')" id="libCatBtn_穀物澱粉" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🌾 穀物</button>
+          <button onclick="filterLibraryCategory('蔬菜菌菇')" id="libCatBtn_蔬菜菌菇" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🥦 蔬菜</button>
+          <button onclick="filterLibraryCategory('水果')" id="libCatBtn_水果" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🍎 水果</button>
+          <button onclick="filterLibraryCategory('蛋豆魚肉乳')" id="libCatBtn_蛋豆魚肉乳" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🥩 蛋白</button>
+          <button onclick="filterLibraryCategory('海藻其他')" id="libCatBtn_海藻其他" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap">🌿 其他</button>
         </div>
 
-        <div class="relative">
-          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-sm"></i>
-          <input type="text" id="librarySearchInput" oninput="renderLibrary()" placeholder="搜尋食材名稱（如：白米、高麗菜、鮭魚...）" class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-xl text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        <div class="relative flex items-center gap-1">
+          <div class="relative flex-1">
+            <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2 text-slate-400 text-[10px]"></i>
+            <input type="text" id="librarySearchInput" oninput="renderLibrary()" placeholder="🔍 搜尋食材名稱（自動搜尋全部分類）..." class="w-full pl-7 pr-2.5 py-1 border border-slate-300 rounded-lg text-xs bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500">
+          </div>
+          <button type="button" onclick="startVoiceRecognition('librarySearchInput', renderLibrary)" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 p-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1" title="語音搜尋食材">
+            🎤 語音
+          </button>
         </div>
       </div>
 
-      <div id="libraryGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"></div>
+      <div id="libraryNotFoundContainer"></div>
+      <div id="libraryGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2"></div>
     </section>
 
   </main>
 
-  <!-- 彈窗 Modal -->
-  <div id="mealModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[92vh] overflow-y-auto custom-scrollbar shadow-2xl border border-slate-100">
-      
-      <div class="p-5 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
-        <h3 class="font-bold text-slate-800 text-xl flex items-center gap-2" id="mealModalTitle">
-          <span>🍲</span> 紀錄餐點食材
-        </h3>
-        <button onclick="closeMealModal()" class="text-slate-400 hover:text-slate-600 w-9 h-9 rounded-full flex items-center justify-center hover:bg-slate-100 transition-all">
-          <i class="fa-solid fa-xmark text-xl"></i>
+  <!-- 食材修改/刪除彈窗 -->
+  <div id="foodEditModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-4 space-y-3 shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between border-b pb-2">
+        <h3 class="font-bold text-slate-800 text-sm">修改食材資訊</h3>
+        <button onclick="closeFoodEditModal()" class="text-slate-400 hover:text-slate-600 text-sm">✕</button>
+      </div>
+      <input type="hidden" id="editingFoodOldName" value="">
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">食材名稱</label>
+        <input type="text" id="editingFoodName" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs bg-slate-50 focus:bg-white focus:ring-1 focus:ring-emerald-500">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">食材分類</label>
+        <select id="editingFoodCategory" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs bg-slate-50 focus:bg-white focus:ring-1 focus:ring-emerald-500">
+          <option value="穀物澱粉">🌾 穀物澱粉</option>
+          <option value="蔬菜菌菇">🥦 蔬菜菌菇</option>
+          <option value="水果">🍎 水果類</option>
+          <option value="蛋豆魚肉乳">🥩 蛋豆魚肉乳</option>
+          <option value="海藻其他">🌿 海藻其他</option>
+        </select>
+      </div>
+      <div class="flex items-center gap-2 pt-2 border-t border-slate-100">
+        <button type="button" onclick="deleteCurrentFood()" class="bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 px-3 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-1" title="徹底刪除此食材">
+          <i class="fa-solid fa-trash-can text-xs"></i> 刪除
         </button>
+        <div class="flex-1 flex gap-1.5">
+          <button type="button" onclick="closeFoodEditModal()" class="flex-1 bg-slate-100 text-slate-600 py-2 rounded-xl font-bold hover:bg-slate-200 text-xs">取消</button>
+          <button type="button" onclick="saveFoodEdit()" class="flex-1 bg-emerald-600 text-white py-2 rounded-xl font-bold hover:bg-emerald-700 text-xs shadow-xs">儲存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 餐點彈窗 Modal -->
+  <div id="mealModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-2.5 hidden">
+    <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[95vh] overflow-y-auto custom-scrollbar shadow-2xl border border-slate-100">
+      
+      <div class="p-3.5 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
+        <h3 class="font-bold text-slate-800 text-base flex items-center gap-1"><span>🍲</span> <span id="modalHeaderLabel">紀錄餐點食材</span></h3>
+        <button onclick="closeMealModal()" class="text-slate-400 hover:text-slate-600 w-7 h-7 rounded-full flex items-center justify-center hover:bg-slate-100 transition-all"><i class="fa-solid fa-xmark text-base"></i></button>
       </div>
 
-      <form id="mealForm" onsubmit="handleMealSubmit(event)" class="p-6 space-y-5">
+      <form id="mealForm" onsubmit="handleMealSubmit(event)" class="p-3.5 sm:p-5 space-y-3">
         <input type="hidden" id="editingMealId" value="">
 
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <!-- 時間與基本資訊 (加入食用狀況) -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-2 bg-slate-50 p-2.5 rounded-2xl border border-slate-200/80">
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">日期</label>
-            <input type="date" id="mealDate" required class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500">
+            <label class="block text-[11px] font-bold text-emerald-800 mb-0.5">⏰ 食用時間</label>
+            <input type="time" id="mealTime" value="09:00" required oninput="autoUpdateMealTypeByTime()" onchange="autoUpdateMealTypeByTime()" class="w-full border border-slate-300 rounded-lg px-2 py-1 text-xs bg-white font-bold focus:ring-1 focus:ring-emerald-500">
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">時間</label>
-            <input type="time" id="mealTime" value="12:00" required class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500">
+            <label class="block text-[11px] font-bold text-slate-700 mb-0.5">日期</label>
+            <input type="date" id="mealDate" required class="w-full border border-slate-300 rounded-lg px-2 py-1 text-xs bg-white focus:ring-1 focus:ring-emerald-500">
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">餐別</label>
-            <select id="mealType" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500">
-              <option value="早餐">🥣 早餐</option>
-              <option value="早點心">🍎 早點心</option>
-              <option value="午餐" selected>🍱 午餐</option>
-              <option value="下午茶">🍪 下午茶</option>
-              <option value="晚餐">🍲 晚餐</option>
-              <option value="晚點心">🥛 晚點心</option>
+            <label class="block text-[11px] font-bold text-slate-700 mb-0.5">餐別 (時間自動對應)</label>
+            <select id="mealType" class="w-full border border-slate-300 rounded-lg px-2 py-1 text-xs bg-white focus:ring-1 focus:ring-emerald-500">
+              <option value="早餐">🥣 早餐 (上午)</option>
+              <option value="早點心">🍎 早點心 (上午)</option>
+              <option value="午餐">🍱 午餐 (下午)</option>
+              <option value="下午茶">🍪 下午茶 (下午)</option>
+              <option value="晚餐">🍲 晚餐 (下午/晚上)</option>
+              <option value="晚點心">🥛 晚點心 (晚上)</option>
             </select>
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">食用總量 (g/ml)</label>
-            <input type="number" id="mealWeight" placeholder="例：80" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500">
+            <label class="block text-[11px] font-bold text-slate-700 mb-0.5">食用總量 (g/ml)</label>
+            <input type="number" id="mealWeight" placeholder="例：80" class="w-full border border-slate-300 rounded-lg px-2 py-1 text-xs bg-white focus:ring-1 focus:ring-emerald-500">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-emerald-800 mb-0.5">🥣 食用狀況</label>
+            <select id="mealFinishStatus" class="w-full border border-slate-300 rounded-lg px-2 py-1 text-xs bg-white font-bold focus:ring-1 focus:ring-emerald-500">
+              <option value="全部吃完" selected>🥣 全部吃完</option>
+              <option value="吃大半">😋 吃大半 (約 3/4)</option>
+              <option value="吃一半">😐 吃一半</option>
+              <option value="剩很多">🥣 剩很多 / 淺嚐</option>
+            </select>
           </div>
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1.5">選擇本次食用食材 (可跨類別搜尋)</label>
-          <div class="relative mb-2">
-            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-2.5 text-slate-400 text-xs"></i>
-            <input type="text" id="pickerSearchInput" oninput="renderPickerChips()" placeholder="🔍 輸入關鍵字全站搜尋（例：火龍果、鮭魚...）" class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500">
+          <label class="block text-[11px] font-bold text-slate-700 mb-1">選擇食用食材 / 食物組合</label>
+
+          <div class="relative flex items-center gap-1 mb-1.5">
+            <div class="relative flex-1">
+              <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2 text-slate-400 text-[10px]"></i>
+              <input type="text" id="pickerSearchInput" oninput="renderPickerChips()" placeholder="🔍 搜尋食材（自動搜尋全部類別）..." class="w-full pl-7 pr-2.5 py-1 border border-slate-300 rounded-lg text-xs bg-slate-50 focus:bg-white focus:ring-1 focus:ring-emerald-500">
+            </div>
+            <button type="button" onclick="startVoiceRecognition('pickerSearchInput', renderPickerChips)" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 p-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1" title="語音搜尋食材">
+              🎤 語音
+            </button>
           </div>
 
-          <div class="flex gap-1.5 overflow-x-auto pb-1 mb-2 custom-scrollbar text-xs">
-            <button type="button" onclick="switchPickerCategory('unlocked')" class="picker-tab active px-3 py-1.5 rounded-lg bg-amber-100 text-amber-900 font-bold whitespace-nowrap">✨ 已解鎖</button>
-            <button type="button" onclick="switchPickerCategory('穀物澱粉')" class="picker-tab px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap">🌾 穀物</button>
-            <button type="button" onclick="switchPickerCategory('蔬菜菌菇')" class="picker-tab px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap">🥦 蔬菜</button>
-            <button type="button" onclick="switchPickerCategory('水果')" class="picker-tab px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap">🍎 水果</button>
-            <button type="button" onclick="switchPickerCategory('蛋豆魚肉乳')" class="picker-tab px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap">🥩 蛋白</button>
-            <button type="button" onclick="switchPickerCategory('海藻其他')" class="picker-tab px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap">🌿 其他</button>
+          <div class="flex gap-1 overflow-x-auto pb-0.5 mb-1.5 custom-scrollbar text-xs">
+            <button type="button" onclick="switchPickerCategory('combo')" id="pickCatBtn_combo" class="px-2 py-0.5 rounded-md bg-amber-500 text-white font-bold whitespace-nowrap text-[11px]">🍱 食物組合</button>
+            <button type="button" onclick="switchPickerCategory('all')" id="pickCatBtn_all" class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap text-[11px]">全部食材</button>
+            <button type="button" onclick="switchPickerCategory('穀物澱粉')" id="pickCatBtn_穀物澱粉" class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap text-[11px]">🌾 穀物</button>
+            <button type="button" onclick="switchPickerCategory('蔬菜菌菇')" id="pickCatBtn_蔬菜菌菇" class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap text-[11px]">🥦 蔬菜</button>
+            <button type="button" onclick="switchPickerCategory('水果')" id="pickCatBtn_水果" class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap text-[11px]">🍎 水果</button>
+            <button type="button" onclick="switchPickerCategory('蛋豆魚肉乳')" id="pickCatBtn_蛋豆魚肉乳" class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap text-[11px]">🥩 蛋白</button>
+            <button type="button" onclick="switchPickerCategory('海藻其他')" id="pickCatBtn_海藻其他" class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap text-[11px]">🌿 其他</button>
           </div>
 
-          <div id="pickerChipsContainer" class="flex flex-wrap gap-2 p-3 bg-slate-50 rounded-2xl border border-slate-200 max-h-48 overflow-y-auto custom-scrollbar"></div>
+          <div id="pickerChipsContainer" class="flex flex-wrap gap-1 p-2 bg-slate-50 rounded-xl border border-slate-200 max-h-32 overflow-y-auto custom-scrollbar"></div>
         </div>
 
-        <div class="bg-emerald-50/60 p-4 rounded-2xl border border-emerald-100 space-y-2">
-          <div class="text-xs font-bold text-emerald-900 flex items-center justify-between">
-            <span>已選擇食材（「新」食材標籤由系統自動比對）：</span>
-            <span id="selectedIngredientsCount" class="text-emerald-700 font-semibold">0 項</span>
+        <!-- 已選擇的項目 -->
+        <div class="bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100 space-y-1.5">
+          <div class="text-[11px] font-bold text-emerald-900 flex items-center justify-between">
+            <span>已選擇食用內容：</span>
+            <div class="flex items-center gap-2">
+              <span id="selectedIngredientsCount" class="text-emerald-700 font-semibold">0 項</span>
+              <button type="button" onclick="saveCurrentAsCombo()" class="text-[10px] bg-amber-500 hover:bg-amber-600 text-white font-bold px-2 py-0.5 rounded-md shadow-2xs">💾 將已選食材打包為新組合</button>
+            </div>
           </div>
-          <div id="selectedIngredientsList" class="space-y-2 min-h-[40px]"></div>
+          <div id="selectedIngredientsList" class="space-y-1.5 min-h-[20px]"></div>
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">食材形態 / 質地</label>
-          <select id="mealTexture" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500">
+          <label class="block text-[11px] font-bold text-slate-700 mb-0.5">食材形態 / 質地</label>
+          <select id="mealTexture" class="w-full border border-slate-300 rounded-lg px-2 py-1 text-xs bg-slate-50 focus:bg-white focus:ring-1 focus:ring-emerald-500">
             <option value="十倍粥 / 米湯" selected>🥣 十倍粥 / 米湯</option>
             <option value="七倍粥 / 濃粥">🥣 七倍粥 / 濃粥</option>
             <option value="五倍粥 / 軟飯">🍚 五倍粥 / 軟飯</option>
@@ -242,47 +398,101 @@
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">備註 / 觀察心得（選填）</label>
-          <textarea id="mealNotes" rows="2" placeholder="例：吃了半碗，皮膚無紅疹、大便正常..." class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500"></textarea>
+          <label class="block text-[11px] font-bold text-slate-700 mb-0.5">備註 / 觀察心得（選填）</label>
+          <textarea id="mealNotes" rows="2" placeholder="例：皮膚無紅疹、大便正常..." class="w-full border border-slate-300 rounded-lg px-2 py-1 text-xs bg-slate-50 focus:bg-white focus:ring-1 focus:ring-emerald-500"></textarea>
         </div>
 
-        <div class="flex gap-3 pt-3 border-t border-slate-100">
-          <button type="button" onclick="closeMealModal()" class="flex-1 bg-slate-100 text-slate-600 py-3 rounded-xl font-bold hover:bg-slate-200 text-sm">取消</button>
-          <button type="submit" class="flex-1 bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700 text-sm shadow-md">儲存餐點紀錄</button>
+        <div class="flex gap-2 pt-1 border-t border-slate-100">
+          <button type="button" onclick="closeMealModal()" class="flex-1 bg-slate-100 text-slate-600 py-2 rounded-xl font-bold hover:bg-slate-200 text-xs">取消</button>
+          <button type="submit" class="flex-1 bg-emerald-600 text-white py-2 rounded-xl font-bold hover:bg-emerald-700 text-xs shadow-xs" id="submitMealBtnLabel">儲存餐點紀錄</button>
         </div>
       </form>
 
     </div>
   </div>
 
-  <!-- JAVASCRIPT LOGIC -->
   <script>
     const DEFAULT_FOOD_DATABASE = [
-      { name: '白米', category: '穀物澱粉', icon: '🍚', status: 'none' },
-      { name: '地瓜', category: '穀物澱粉', icon: '🍠', status: 'none' },
-      { name: '馬鈴薯', category: '穀物澱粉', icon: '🥔', status: 'none' },
-      { name: '高麗菜', category: '蔬菜菌菇', icon: '🥬', status: 'none' },
-      { name: '胡蘿蔔', category: '蔬菜菌菇', icon: '🥕', status: 'none' },
-      { name: '南瓜', category: '蔬菜菌菇', icon: '🎃', status: 'none' },
-      { name: '青花菜', category: '蔬菜菌菇', icon: '🥦', status: 'none' },
-      { name: '蘋果', category: '水果', icon: '🍎', status: 'none' },
-      { name: '香蕉', category: '水果', icon: '🍌', status: 'none' },
-      { name: '火龍果', category: '水果', icon: '🐉', status: 'none' },
-      { name: '豆腐', category: '蛋豆魚肉乳', icon: '🧊', status: 'none' },
-      { name: '蛋黃', category: '蛋豆魚肉乳', icon: '🍳', status: 'none' },
-      { name: '鮭魚', category: '蛋豆魚肉乳', icon: '🐟', status: 'none' }
+      { name: '白米', category: '穀物澱粉', icon: '🍚' },
+      { name: '胚芽米', category: '穀物澱粉', icon: '🌾' },
+      { name: '糙米', category: '穀物澱粉', icon: '🌾' },
+      { name: '燕麥', category: '穀物澱粉', icon: '🥣' },
+      { name: '小米', category: '穀物澱粉', icon: '🌾' },
+      { name: '藜麥', category: '穀物澱粉', icon: '🌾' },
+      { name: '地瓜', category: '穀物澱粉', icon: '🍠' },
+      { name: '紫薯', category: '穀物澱粉', icon: '🍠' },
+      { name: '馬鈴薯', category: '穀物澱粉', icon: '🥔' },
+      { name: '南瓜', category: '穀物澱粉', icon: '🎃' },
+      { name: '芋頭', category: '穀物澱粉', icon: '🍠' },
+      { name: '山藥', category: '穀物澱粉', icon: '🍠' },
+      { name: '玉米', category: '穀物澱粉', icon: '🌽' },
+      { name: '蓮實/蓮子', category: '穀物澱粉', icon: '⚪' },
+      { name: '栗子', category: '穀物澱粉', icon: '🌰' },
+      { name: '高麗菜', category: '蔬菜菌菇', icon: '🥬' },
+      { name: '青花菜', category: '蔬菜菌菇', icon: '🥦' },
+      { name: '胡蘿蔔', category: '蔬菜菌菇', icon: '🥕' },
+      { name: '白蘿蔔', category: '蔬菜菌菇', icon: '🥗' },
+      { name: '菠菜', category: '蔬菜菌菇', icon: '🥬' },
+      { name: '小白菜', category: '蔬菜菌菇', icon: '🥬' },
+      { name: '青江菜', category: '蔬菜菌菇', icon: '🥬' },
+      { name: '長豆(豇豆)', category: '蔬菜菌菇', icon: '🥬' },
+      { name: '黑木耳', category: '蔬菜菌菇', icon: '🍄' },
+      { name: '白木耳', category: '蔬菜菌菇', icon: '⚪' },
+      { name: '空心菜', category: '蔬菜菌菇', icon: '🥬' },
+      { name: '大黃瓜 (又名胡瓜、刺瓜)', category: '蔬菜菌菇', icon: '🥒' },
+      { name: '絲瓜', category: '蔬菜菌菇', icon: '🥒' },
+      { name: '小黃瓜', category: '蔬菜菌菇', icon: '🥒' },
+      { name: '冬瓜', category: '蔬菜菌菇', icon: '🍈' },
+      { name: '茄子', category: '蔬菜菌菇', icon: '🍆' },
+      { name: '番茄', category: '蔬菜菌菇', icon: '🍅' },
+      { name: '牛番茄', category: '蔬菜菌菇', icon: '🍅' },
+      { name: '洋蔥', category: '蔬菜菌菇', icon: '🧅' },
+      { name: '香菇', category: '蔬菜菌菇', icon: '🍄' },
+      { name: '柿子', category: '水果', icon: '🍅' },
+      { name: '火龍果', category: '水果', icon: '🐉' },
+      { name: '紅肉火龍果', category: '水果', icon: '🐉' },
+      { name: '白肉火龍果', category: '水果', icon: '🐉' },
+      { name: '蘋果', category: '水果', icon: '🍎' },
+      { name: '香蕉', category: '水果', icon: '🍌' },
+      { name: '水梨', category: '水果', icon: '🍐' },
+      { name: '芭樂', category: '水果', icon: '🍈' },
+      { name: '紅心芭樂', category: '水果', icon: '🍈' },
+      { name: '香瓜', category: '水果', icon: '🍈' },
+      { name: '葡萄', category: '水果', icon: '🍇' },
+      { name: '草莓', category: '水果', icon: '🍓' },
+      { name: '奇異果', category: '水果', icon: '🥝' },
+      { name: '黃金奇異果', category: '水果', icon: '🥝' },
+      { name: '黑豆', category: '蛋豆魚肉乳', icon: '⚫' },
+      { name: '優格', category: '蛋豆魚肉乳', icon: '🥛' },
+      { name: '蛋黃', category: '蛋豆魚肉乳', icon: '🍳' },
+      { name: '蛋白', category: '蛋豆魚肉乳', icon: '🥚' },
+      { name: '嫩豆腐', category: '蛋豆魚肉乳', icon: '🧊' },
+      { name: '板豆腐', category: '蛋豆魚肉乳', icon: '🧊' },
+      { name: '豆漿', category: '蛋豆魚肉乳', icon: '🥛' },
+      { name: '雞胸肉', category: '蛋豆魚肉乳', icon: '🍗' },
+      { name: '豬肉', category: '蛋豆魚肉乳', icon: '🥩' },
+      { name: '豬絞肉', category: '蛋豆魚肉乳', icon: '🥩' },
+      { name: '牛絞肉', category: '蛋豆魚肉乳', icon: '🥩' },
+      { name: '鮭魚', category: '蛋豆魚肉乳', icon: '🐟' },
+      { name: '鱸魚', category: '蛋豆魚肉乳', icon: '🐟' },
+      { name: '鱈魚', category: '蛋豆魚肉乳', icon: '🐟' },
+      { name: '魩仔魚', category: '蛋豆魚肉乳', icon: '🐟' },
+      { name: '蝦仁', category: '蛋豆魚肉乳', icon: '🦐' },
+      { name: '黑芝麻粉', category: '海藻其他', icon: '🖤' },
+      { name: '橄欖油', category: '海藻其他', icon: '🫒' },
+      { name: '高湯', category: '海藻其他', icon: '🍲' }
     ];
 
-    let appData = {
-      syncCode: 'huehue',
-      meals: [],
-      foods: DEFAULT_FOOD_DATABASE
-    };
+    const DEFAULT_COMBOS = [
+      { id: 'combo_pork_porridge', name: '豬肉粥', ingredients: ['白米', '豬肉'] }
+    ];
 
-    let selectedMealIngredients = [];
-    let activePickerCategory = 'unlocked';
+    let appData = { syncCode: 'huehue', meals: [], foods: DEFAULT_FOOD_DATABASE, combos: DEFAULT_COMBOS, foodStatus: {} };
+    let selectedMealItems = [];
+    let activePickerCategory = 'combo';
     let activeLibraryCategory = 'all';
     let calendarCurrentDate = new Date();
+    let analysisWeekOffset = 0;
 
     window.onload = function() {
       loadLocalData();
@@ -290,7 +500,172 @@
       renderPickerChips();
       renderLibrary();
       updateBadges();
+      calculateBabyAge();
+
+      initFirebaseListener();
     };
+
+    function getLocalDateString(d = new Date()) {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function autoUpdateMealTypeByTime() {
+      const timeVal = document.getElementById('mealTime').value;
+      if (!timeVal) return;
+      const hour = parseInt(timeVal.split(':')[0], 10);
+      const mealTypeElem = document.getElementById('mealType');
+
+      if (hour >= 0 && hour < 10) mealTypeElem.value = "早餐";
+      else if (hour >= 10 && hour < 12) mealTypeElem.value = "早點心";
+      else if (hour >= 12 && hour < 14) mealTypeElem.value = "午餐";
+      else if (hour >= 14 && hour < 17) mealTypeElem.value = "下午茶";
+      else if (hour >= 17 && hour < 21) mealTypeElem.value = "晚餐";
+      else mealTypeElem.value = "晚點心";
+    }
+
+    function calculateBabyAge() {
+      const birthDate = new Date(2026, 1, 17);
+      const today = new Date();
+
+      const bDate = new Date(birthDate.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+      const tDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+      if (tDate < bDate) {
+        document.getElementById('babyAgeBadge').innerText = "尚未出生";
+        return;
+      }
+
+      const totalDays = Math.floor((tDate - bDate) / (1000 * 60 * 60 * 24)) + 1;
+
+      let years = tDate.getFullYear() - bDate.getFullYear();
+      let months = tDate.getMonth() - bDate.getMonth();
+      let days = tDate.getDate() - bDate.getDate();
+
+      if (days < 0) {
+        months--;
+        const prevMonthLastDay = new Date(tDate.getFullYear(), tDate.getMonth(), 0).getDate();
+        days += prevMonthLastDay;
+      }
+
+      if (months < 0) {
+        years--;
+        months += 12;
+      }
+
+      const totalMonths = years * 12 + months;
+
+      let ageStr = '';
+      if (totalMonths > 0) ageStr += `${totalMonths} 個月 `;
+      ageStr += `${days} 天`;
+
+      document.getElementById('babyAgeBadge').innerText = `${ageStr} ‧ 出生第 ${totalDays} 天`;
+    }
+
+    function startVoiceRecognition(inputId, callback) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        alert("您的瀏覽器暫不支援語音辨識，請手動輸入文字！");
+        return;
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'zh-TW';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      const inputElem = document.getElementById(inputId);
+      const originalPlaceholder = inputElem.placeholder;
+      inputElem.placeholder = "聆聽中，請開口講話...";
+
+      recognition.start();
+
+      recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript.replace(/[。，、]/g, '').trim();
+        inputElem.value = transcript;
+        inputElem.placeholder = originalPlaceholder;
+        if (callback) callback();
+      };
+
+      recognition.onerror = function() {
+        alert("語音辨識失敗，請再試一次！");
+        inputElem.placeholder = originalPlaceholder;
+      };
+
+      recognition.onend = function() {
+        inputElem.placeholder = originalPlaceholder;
+      };
+    }
+
+    function getEarliestDateMap() {
+      const map = {};
+      const sortedMeals = [...appData.meals].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+      sortedMeals.forEach(m => {
+        const allIngs = [];
+        (m.items || []).forEach(it => {
+          if (it.type === 'combo') (it.ingredients || []).forEach(sub => allIngs.push(sub));
+          else allIngs.push(it.name);
+        });
+        (m.ingredients || []).forEach(i => allIngs.push(typeof i === 'string' ? i : i.name));
+
+        allIngs.forEach(ingName => {
+          if (ingName && !map[ingName]) {
+            map[ingName] = m.date;
+          }
+        });
+      });
+      return map;
+    }
+
+    function getIngredientCountMap() {
+      const countMap = {};
+      appData.meals.forEach(m => {
+        const allIngs = [];
+        (m.items || []).forEach(it => {
+          if (it.type === 'combo') (it.ingredients || []).forEach(sub => allIngs.push(sub));
+          else allIngs.push(it.name);
+        });
+        (m.ingredients || []).forEach(i => allIngs.push(typeof i === 'string' ? i : i.name));
+
+        allIngs.forEach(ingName => {
+          if (ingName) countMap[ingName] = (countMap[ingName] || 0) + 1;
+        });
+      });
+      return countMap;
+    }
+
+    function initFirebaseListener() {
+      if (!window.firebaseInitialized) {
+        setTimeout(initFirebaseListener, 500);
+        return;
+      }
+      const syncRef = window.dbRef(window.db, 'baby_food_' + appData.syncCode);
+      
+      window.dbOnValue(syncRef, (snapshot) => {
+        const val = snapshot.val();
+        if (val) {
+          appData.meals = val.meals || [];
+          appData.foodStatus = val.foodStatus || {};
+          appData.combos = val.combos || DEFAULT_COMBOS;
+          if (val.foods && val.foods.length >= 20) appData.foods = val.foods;
+          localStorage.setItem('baby_food_app_data', JSON.stringify(appData));
+          
+          renderDailyCards();
+          renderCalendar();
+          renderAnalysis();
+          renderLibrary();
+          updateBadges();
+        }
+        document.getElementById('cloudStatusBadge').className = "bg-emerald-100 text-emerald-800 text-[9px] px-1.5 py-0.5 rounded font-bold";
+        document.getElementById('cloudStatusBadge').innerText = "✓ 雲端已即時同步";
+      }, (error) => {
+        console.error("Firebase error:", error);
+        document.getElementById('cloudStatusBadge').className = "bg-rose-100 text-rose-800 text-[9px] px-1.5 py-0.5 rounded font-bold";
+        document.getElementById('cloudStatusBadge').innerText = "⚠️ 權限受限";
+      });
+    }
 
     function loadLocalData() {
       const saved = localStorage.getItem('baby_food_app_data');
@@ -299,7 +674,9 @@
           const parsed = JSON.parse(saved);
           if (parsed.syncCode) appData.syncCode = parsed.syncCode;
           if (parsed.meals) appData.meals = parsed.meals;
-          if (parsed.foods) appData.foods = parsed.foods;
+          if (parsed.foodStatus) appData.foodStatus = parsed.foodStatus;
+          if (parsed.combos) appData.combos = parsed.combos;
+          if (parsed.foods && parsed.foods.length >= 20) appData.foods = parsed.foods;
         } catch (e) {}
       }
       document.getElementById('syncCodeDisplay').innerText = appData.syncCode;
@@ -308,90 +685,168 @@
     function saveData() {
       localStorage.setItem('baby_food_app_data', JSON.stringify(appData));
       updateBadges();
+
+      if (window.firebaseInitialized) {
+        const syncRef = window.dbRef(window.db, 'baby_food_' + appData.syncCode);
+        window.dbSet(syncRef, appData);
+      }
     }
 
     function shiftDailyDate(offsetDays) {
       const input = document.getElementById('dailyDateFilter');
-      const currentVal = input.value || new Date().toISOString().split('T')[0];
-      
-      const dateObj = new Date(currentVal);
+      const parts = (input.value || getLocalDateString()).split('-');
+      const dateObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
       dateObj.setDate(dateObj.getDate() + offsetDays);
-      
-      input.value = dateObj.toISOString().split('T')[0];
+      input.value = getLocalDateString(dateObj);
       renderDailyCards();
     }
 
     function resetDailyDateToToday() {
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById('dailyDateFilter').value = today;
-      document.getElementById('mealDate').value = today;
+      const todayStr = getLocalDateString();
+      document.getElementById('dailyDateFilter').value = todayStr;
+      document.getElementById('mealDate').value = todayStr;
       renderDailyCards();
     }
 
+    function formatMealDisplayTime(timeStr) {
+      if (!timeStr) return '';
+      const [h, m] = timeStr.split(':');
+      let hour = parseInt(h, 10);
+      const ampm = hour < 12 ? '上午' : '下午';
+      if (hour > 12) hour -= 12;
+      if (hour === 0) hour = 12;
+      return `${ampm} ${hour}:${m}`;
+    }
+
+    /* 按日視圖渲染：標示食用狀況（全部吃完/吃大半等） */
     function renderDailyCards() {
       const container = document.getElementById('dailyCardsContainer');
       const targetDate = document.getElementById('dailyDateFilter').value;
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = getLocalDateString();
+      const earliestMap = getEarliestDateMap();
 
-      const btnToday = document.getElementById('btnJumpToToday');
-      if (targetDate !== todayStr) {
-        btnToday.classList.remove('hidden');
-      } else {
-        btnToday.classList.add('hidden');
-      }
+      document.getElementById('btnJumpToToday').classList.toggle('hidden', targetDate === todayStr);
 
       const dayMeals = appData.meals.filter(m => m.date === targetDate);
       dayMeals.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
 
       if (dayMeals.length === 0) {
         container.innerHTML = `
-          <div class="bg-white rounded-2xl p-8 text-center border border-slate-200 text-slate-400 space-y-3">
-            <div class="text-4xl">🥣</div>
-            <p class="font-medium text-slate-600">${targetDate} 尚無副食品紀錄</p>
-            <button onclick="openMealModal('${targetDate}')" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-emerald-700">
-              + 新增本日餐點紀錄
-            </button>
-          </div>
-        `;
+          <div class="bg-white rounded-3xl p-8 text-center border border-slate-100 text-slate-400 space-y-3 shadow-xs">
+            <div class="text-3xl">🥣</div>
+            <p class="font-bold text-sm text-slate-600">${targetDate} 尚無副食品紀錄</p>
+            <button onclick="openMealModal(null, '${targetDate}')" class="bg-emerald-600 text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-xs hover:bg-emerald-700">+ 新增餐點</button>
+          </div>`;
         return;
       }
 
       let html = '';
       dayMeals.forEach(meal => {
-        let ingredientsLinesHtml = '';
-        if (meal.ingredients && meal.ingredients.length > 0) {
-          ingredientsLinesHtml = meal.ingredients.map(item => {
-            const ingName = typeof item === 'string' ? item : item.name;
-            const isNew = meal.newIngredients && meal.newIngredients.includes(ingName);
-            const foodObj = appData.foods.find(f => f.name === ingName) || {};
+        const timeDisplay = formatMealDisplayTime(meal.time);
 
-            return `
-              <div class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 w-full text-sm">
-                <div class="flex items-center gap-2">
-                  <span>${foodObj.icon || '🥦'}</span>
-                  <span class="font-bold text-slate-800">${escapeHtml(ingName)}</span>
-                  ${isNew ? '<span class="bg-amber-400 text-slate-900 font-extrabold text-[11px] px-1.5 py-0.5 rounded shadow-sm">新嘗試</span>' : ''}
-                </div>
-              </div>
-            `;
-          }).join('');
+        let renderItems = [];
+        if (meal.items && meal.items.length > 0) {
+          renderItems = meal.items;
+        } else if (meal.comboName) {
+          const matchedCombo = (appData.combos || []).find(c => c.name === meal.comboName);
+          const comboOriginalIngs = matchedCombo ? matchedCombo.ingredients : [];
+          
+          const comboIngs = [];
+          const standaloneIngs = [];
+
+          (meal.ingredients || []).forEach(i => {
+            const ingName = typeof i === 'string' ? i : i.name;
+            if (comboOriginalIngs.includes(ingName)) {
+              comboIngs.push(ingName);
+            } else {
+              standaloneIngs.push(ingName);
+            }
+          });
+
+          renderItems.push({
+            type: 'combo',
+            name: meal.comboName,
+            ingredients: comboIngs.length > 0 ? comboIngs : (meal.ingredients || []).map(i => typeof i === 'string' ? i : i.name)
+          });
+
+          standaloneIngs.forEach(extraName => {
+            renderItems.push({ type: 'food', name: extraName });
+          });
+        } else {
+          (meal.ingredients || []).forEach(i => {
+            const ingName = typeof i === 'string' ? i : i.name;
+            renderItems.push({ type: 'food', name: ingName });
+          });
         }
 
+        const cardsHtml = renderItems.map(item => {
+          if (item.type === 'combo') {
+            let hasNew = false;
+            (item.ingredients || []).forEach(sub => {
+              if (earliestMap[sub] === meal.date) hasNew = true;
+            });
+
+            return `
+              <div class="flex items-start gap-3 bg-slate-50/80 p-3 rounded-2xl border border-slate-100/90 shadow-2xs">
+                <div class="w-11 h-11 rounded-2xl bg-amber-100/70 border border-amber-200/50 flex items-center justify-center text-xl shadow-2xs">🍱</div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-1.5">
+                    <span class="font-black text-base text-slate-800 break-words">${escapeHtml(item.name)}</span>
+                    ${hasNew ? '<span class="bg-amber-400 text-slate-900 font-black text-[10px] px-1.5 py-0.2 rounded-md leading-tight">新</span>' : ''}
+                  </div>
+                  ${meal.texture ? `<div class="text-[11px] font-bold text-slate-400 mt-0.5">${escapeHtml(meal.texture.split('/')[0].trim())}</div>` : ''}
+                  <div class="text-[11px] text-slate-500 font-medium break-words mt-0.5">包含: ${(item.ingredients || []).join('、')}</div>
+                </div>
+              </div>`;
+          } else {
+            const foodObj = appData.foods.find(f => f.name === item.name) || {};
+            const isFirst = earliestMap[item.name] === meal.date;
+            const status = appData.foodStatus[item.name] || 'normal';
+
+            let statusTag = '';
+            if (status === 'like') statusTag = '<span class="text-xs text-rose-500 font-bold ml-1">❤️ 喜愛</span>';
+            else if (status === 'dislike') statusTag = '<span class="text-xs text-amber-600 font-bold ml-1">🤢 討厭</span>';
+            else if (status === 'allergy') statusTag = '<span class="bg-rose-600 text-black text-[9px] font-black px-1 rounded ml-1">❌ 過敏</span>';
+
+            return `
+              <div class="flex items-start gap-3 bg-slate-50/80 p-3 rounded-2xl border border-slate-100/90 shadow-2xs">
+                <div class="w-11 h-11 rounded-2xl bg-white border border-slate-200/80 flex items-center justify-center text-2xl shadow-2xs">${foodObj.icon || '🥦'}</div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="font-black text-base text-slate-800 break-words">${escapeHtml(item.name)}</span>
+                    ${isFirst ? '<span class="bg-amber-400 text-slate-900 font-black text-[10px] px-1.5 py-0.2 rounded-md leading-tight">新</span>' : ''}
+                    ${statusTag}
+                  </div>
+                  ${meal.texture ? `<div class="text-[11px] font-bold text-slate-400 mt-0.5">${escapeHtml(meal.texture.split('/')[0].trim())}</div>` : ''}
+                </div>
+              </div>`;
+          }
+        }).join('');
+
+        // 食用狀況徽章色彩樣式
+        const finish = meal.finishStatus || '全部吃完';
+        let finishBadgeClass = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+        if (finish === '吃大半') finishBadgeClass = 'bg-teal-100 text-teal-800 border-teal-300';
+        else if (finish === '吃一半') finishBadgeClass = 'bg-amber-100 text-amber-800 border-amber-300';
+        else if (finish === '剩很多') finishBadgeClass = 'bg-orange-100 text-orange-800 border-orange-300';
+
         html += `
-          <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div class="flex items-center gap-2.5">
-                <span class="bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-lg font-bold">${meal.type || '餐點'}</span>
-                <span class="text-slate-500 font-semibold text-xs"><i class="fa-regular fa-clock"></i> ${meal.time || '--:--'}</span>
+          <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/70 shadow-sm space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md">${meal.type || '餐點'}</span>
+                <span class="text-base sm:text-lg font-black text-slate-900 tracking-tight">${timeDisplay}</span>
+                ${meal.weight ? `<span class="text-slate-400 text-xs font-semibold">(${meal.weight}g)</span>` : ''}
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md border ${finishBadgeClass}">✓ ${escapeHtml(finish)}</span>
               </div>
-              <button onclick="deleteMeal('${meal.id}')" class="text-slate-400 hover:text-rose-600 p-1">
-                <i class="fa-solid fa-trash-can"></i>
-              </button>
+              <div class="flex items-center gap-1">
+                <button onclick="editMeal('${meal.id}')" class="text-slate-400 hover:text-slate-700 p-1.5 text-sm font-bold" title="編輯"><i class="fa-solid fa-pen-to-square"></i></button>
+                <button onclick="deleteMeal('${meal.id}')" class="text-slate-300 hover:text-rose-600 p-1.5 text-xs" title="刪除"><i class="fa-solid fa-trash-can"></i></button>
+              </div>
             </div>
-            <div class="space-y-1.5">${ingredientsLinesHtml}</div>
-            ${meal.notes ? `<div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs text-slate-600"><b>備註：</b>${escapeHtml(meal.notes)}</div>` : ''}
-          </div>
-        `;
+            <div class="space-y-2">${cardsHtml}</div>
+            ${meal.notes ? `<div class="text-xs text-slate-500 bg-amber-50/50 border border-amber-100/60 p-2 rounded-xl"><b>備註：</b>${escapeHtml(meal.notes)}</div>` : ''}
+          </div>`;
       });
 
       container.innerHTML = html;
@@ -400,28 +855,34 @@
     function switchView(viewName) {
       document.getElementById('viewDaily').classList.add('hidden');
       document.getElementById('viewCalendar').classList.add('hidden');
+      document.getElementById('viewAnalysis').classList.add('hidden');
       document.getElementById('viewLibrary').classList.add('hidden');
 
-      document.getElementById('viewBtnDaily').className = "px-4 py-2 rounded-lg transition-all flex items-center gap-2 text-slate-600 hover:text-slate-900";
-      document.getElementById('viewBtnCalendar').className = "px-4 py-2 rounded-lg transition-all flex items-center gap-2 text-slate-600 hover:text-slate-900";
-      document.getElementById('viewBtnLibrary').className = "px-4 py-2 rounded-lg transition-all flex items-center gap-2 text-slate-600 hover:text-slate-900";
+      document.getElementById('viewBtnDaily').className = "px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900 whitespace-nowrap";
+      document.getElementById('viewBtnCalendar').className = "px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900 whitespace-nowrap";
+      document.getElementById('viewBtnAnalysis').className = "px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900 whitespace-nowrap";
+      document.getElementById('viewBtnLibrary').className = "px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 text-slate-600 hover:text-slate-900 whitespace-nowrap";
 
       if (viewName === 'daily') {
         document.getElementById('viewDaily').classList.remove('hidden');
-        document.getElementById('viewBtnDaily').className = "px-4 py-2 rounded-lg transition-all flex items-center gap-2 bg-white shadow-sm text-emerald-700 font-semibold";
+        document.getElementById('viewBtnDaily').className = "px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 bg-white shadow-xs text-emerald-700 font-semibold whitespace-nowrap";
         renderDailyCards();
       } else if (viewName === 'calendar') {
         document.getElementById('viewCalendar').classList.remove('hidden');
-        document.getElementById('viewBtnCalendar').className = "px-4 py-2 rounded-lg transition-all flex items-center gap-2 bg-white shadow-sm text-emerald-700 font-semibold";
+        document.getElementById('viewBtnCalendar').className = "px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 bg-white shadow-xs text-emerald-700 font-semibold whitespace-nowrap";
         renderCalendar();
+      } else if (viewName === 'analysis') {
+        document.getElementById('viewAnalysis').classList.remove('hidden');
+        document.getElementById('viewBtnAnalysis').className = "px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 bg-white shadow-xs text-emerald-700 font-semibold whitespace-nowrap";
+        renderAnalysis();
       } else if (viewName === 'library') {
         document.getElementById('viewLibrary').classList.remove('hidden');
-        document.getElementById('viewBtnLibrary').className = "px-4 py-2 rounded-lg transition-all flex items-center gap-2 bg-white shadow-sm text-emerald-700 font-semibold";
+        document.getElementById('viewBtnLibrary').className = "px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1 bg-white shadow-xs text-emerald-700 font-semibold whitespace-nowrap";
         renderLibrary();
       }
     }
 
-    /* 渲染按月日曆：強化新食材黃色底色標籤 */
+    /* 按月日曆渲染 */
     function renderCalendar() {
       const year = calendarCurrentDate.getFullYear();
       const month = calendarCurrentDate.getMonth();
@@ -432,41 +893,79 @@
       const grid = document.getElementById('calendarGrid');
       grid.innerHTML = '';
 
+      const earliestMap = getEarliestDateMap();
+      const todayStr = getLocalDateString();
+
       for (let i = 0; i < firstDay; i++) {
-        grid.innerHTML += `<div class="bg-slate-50/40 rounded-2xl min-h-[120px] border border-transparent"></div>`;
+        grid.innerHTML += `<div class="min-h-[50px]"></div>`;
       }
 
       for (let d = 1; d <= daysInMonth; d++) {
         const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         const dayMeals = appData.meals.filter(m => m.date === dateStr);
+        dayMeals.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
 
-        let mealsListHtml = dayMeals.map(m => {
-          const ingsHtml = (m.ingredients || []).map(i => {
-            const ingName = typeof i === 'string' ? i : i.name;
-            const isNew = m.newIngredients && m.newIngredients.includes(ingName);
+        let mealsGroupsHtml = '';
 
-            if (isNew) {
-              return `<span class="bg-amber-300 text-amber-950 font-extrabold px-1 py-0.5 rounded shadow-sm text-[10px] inline-block my-0.5">🆕 ${escapeHtml(ingName)}</span>`;
+        if (dayMeals.length > 0) {
+          mealsGroupsHtml = dayMeals.map(meal => {
+            let items = [];
+            if (meal.items && meal.items.length > 0) {
+              items = meal.items;
+            } else if (meal.comboName) {
+              const matchedCombo = (appData.combos || []).find(c => c.name === meal.comboName);
+              const comboOriginalIngs = matchedCombo ? matchedCombo.ingredients : [];
+              items.push({ type: 'combo', name: meal.comboName });
+              (meal.ingredients || []).forEach(i => {
+                const ingName = typeof i === 'string' ? i : i.name;
+                if (!comboOriginalIngs.includes(ingName)) {
+                  items.push({ type: 'food', name: ingName });
+                }
+              });
             } else {
-              return `<span class="text-slate-700">${escapeHtml(ingName)}</span>`;
+              (meal.ingredients || []).forEach(i => {
+                const ingName = typeof i === 'string' ? i : i.name;
+                items.push({ type: 'food', name: ingName });
+              });
             }
-          }).join('、');
 
-          return `<div class="text-[11px] bg-slate-50 p-1 rounded border border-slate-100 flex flex-wrap items-center gap-1">
-            <span class="font-bold text-slate-500">${m.type}:</span> ${ingsHtml}
-          </div>`;
-        }).join('');
+            const chipsHtml = items.map(item => {
+              if (item.type === 'combo') {
+                return `<div class="w-full cat-combo px-0.5 py-0.5 rounded text-[8px] sm:text-[9.5px] text-center border shadow-2xs cal-chip">${escapeHtml(item.name)}</div>`;
+              } else {
+                const foodObj = appData.foods.find(f => f.name === item.name) || {};
+                const cat = foodObj.category || '海藻其他';
+                const isFirst = earliestMap[item.name] === dateStr;
 
-        const isToday = dateStr === new Date().toISOString().split('T')[0];
+                let catClass = 'cat-other';
+                if (cat === '穀物澱粉') catClass = 'cat-grain';
+                else if (cat === '蔬菜菌菇') catClass = 'cat-veg';
+                else if (cat === '水果') catClass = 'cat-fruit';
+                else if (cat === '蛋豆魚肉乳') catClass = 'cat-meat';
 
+                return `
+                  <div class="w-full ${catClass} px-0.5 py-0.5 rounded text-[8px] sm:text-[9px] text-center border shadow-2xs cal-chip flex items-center justify-center flex-wrap">
+                    <span>${escapeHtml(item.name)}</span>
+                    ${isFirst ? '<span class="bg-amber-400 text-slate-900 rounded px-0.5 text-[7px] font-black shrink-0 ml-0.5">新</span>' : ''}
+                  </div>`;
+              }
+            }).join('');
+
+            return `
+              <div class="calendar-meal-group space-y-0.5 mb-1.5 last:mb-0">
+                ${chipsHtml}
+              </div>`;
+          }).join('');
+        } else {
+          mealsGroupsHtml = `<div class="text-slate-300 text-xs font-black leading-none mt-1">·</div>`;
+        }
+
+        const isToday = dateStr === todayStr;
         grid.innerHTML += `
-          <div onclick="jumpToDateFromCalendar('${dateStr}')" class="bg-white rounded-2xl border ${isToday ? 'border-emerald-500 ring-2 ring-emerald-200' : 'border-slate-200'} p-2 min-h-[120px] hover:border-emerald-400 cursor-pointer flex flex-col justify-between transition-all">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-1">
-              <span class="text-xs font-bold ${isToday ? 'bg-emerald-600 text-white rounded-full w-5 h-5 flex items-center justify-center' : 'text-slate-700'}">${d}</span>
-            </div>
-            <div class="space-y-1 overflow-y-auto flex-1">${mealsListHtml}</div>
-          </div>
-        `;
+          <div onclick="jumpToDateFromCalendar('${dateStr}')" class="min-h-[55px] h-auto flex flex-col items-center justify-start cursor-pointer transition-all hover:bg-slate-50 rounded-lg p-0.5">
+            <span class="text-xs sm:text-sm font-black mb-1 flex items-center justify-center ${isToday ? 'bg-[#73989c] text-white rounded-md w-5 h-5 sm:w-6 sm:h-6 shadow-xs text-[11px]' : 'text-slate-900'}">${d}</span>
+            <div class="w-full flex flex-col items-center">${mealsGroupsHtml}</div>
+          </div>`;
       }
     }
 
@@ -480,46 +979,354 @@
       switchView('daily');
     }
 
+    function shiftAnalysisWeek(delta) {
+      analysisWeekOffset += delta;
+      renderAnalysis();
+    }
+
+    function renderAnalysis() {
+      const now = new Date();
+      const currentDay = now.getDay();
+      const diffToMonday = now.getDate() - currentDay + (currentDay === 0 ? -6 : 1);
+      
+      const monday = new Date(now.setDate(diffToMonday));
+      monday.setDate(monday.getDate() + (analysisWeekOffset * 7));
+
+      const sunday = new Date(monday);
+      sunday.setDate(sunday.getDate() + 6);
+
+      const startStr = `${monday.getMonth() + 1}/${monday.getDate()}`;
+      const endStr = `${sunday.getMonth() + 1}/${sunday.getDate()}`;
+      document.getElementById('analysisWeekTitle').innerText = `${startStr} - ${endStr}`;
+
+      const startDateStr = getLocalDateString(monday);
+      const endDateStr = getLocalDateString(sunday);
+
+      const weekMeals = appData.meals.filter(m => m.date >= startDateStr && m.date <= endDateStr);
+
+      let totalWeight = 0;
+      const categoryWeights = { '穀物澱粉': 0, '蔬菜菌菇': 0, '水果': 0, '蛋豆魚肉乳': 0, '海藻其他': 0 };
+
+      weekMeals.forEach(m => {
+        const w = parseFloat(m.weight) || 50;
+        const allIngs = [];
+        (m.items || []).forEach(it => {
+          if (it.type === 'combo') (it.ingredients || []).forEach(sub => allIngs.push(sub));
+          else allIngs.push(it.name);
+        });
+        (m.ingredients || []).forEach(i => allIngs.push(typeof i === 'string' ? i : i.name));
+
+        if (allIngs.length > 0) {
+          const portion = w / allIngs.length;
+          allIngs.forEach(ingName => {
+            const foodObj = appData.foods.find(f => f.name === ingName) || { category: '海藻其他' };
+            const cat = foodObj.category || '海藻其他';
+            categoryWeights[cat] = (categoryWeights[cat] || 0) + portion;
+            totalWeight += portion;
+          });
+        }
+      });
+
+      document.getElementById('analysisTotalWeight').innerText = totalWeight.toFixed(0);
+
+      const grainPct = totalWeight > 0 ? (categoryWeights['穀物澱粉'] / totalWeight) * 100 : 0;
+      const vegPct = totalWeight > 0 ? (categoryWeights['蔬菜菌菇'] / totalWeight) * 100 : 0;
+
+      document.getElementById('piePathGrain').setAttribute('stroke-dasharray', `${grainPct}, 100`);
+      document.getElementById('piePathVeg').setAttribute('stroke-dasharray', `${vegPct}, 100`);
+      document.getElementById('piePathVeg').setAttribute('stroke-dashoffset', `-${grainPct}`);
+
+      const catListContainer = document.getElementById('analysisCategoryList');
+      let catHtml = '';
+      const catIcons = { '穀物澱粉': '🍚', '蔬菜菌菇': '🥬', '水果': '🍎', '蛋豆魚肉乳': '🥩', '海藻其他': '🌿' };
+
+      Object.keys(categoryWeights).forEach(cat => {
+        const w = categoryWeights[cat];
+        if (w > 0 || totalWeight === 0) {
+          catHtml += `
+            <div class="flex items-center justify-between text-xs">
+              <div class="flex items-center gap-1.5">
+                <span class="text-sm">${catIcons[cat]}</span>
+                <span class="font-bold text-slate-300">${cat}</span>
+              </div>
+              <span class="font-black text-white">${w.toFixed(1)} <span class="text-[10px] text-slate-400">g</span></span>
+            </div>`;
+        }
+      });
+      catListContainer.innerHTML = catHtml || `<div class="text-xs text-slate-400">本週尚無飲食紀錄</div>`;
+
+      document.getElementById('nutriFiber').innerText = (totalWeight * 0.035).toFixed(1);
+      document.getElementById('nutriProtein').innerText = (totalWeight * 0.041).toFixed(1);
+      document.getElementById('nutriCalcium').innerText = (totalWeight * 0.66).toFixed(1);
+      document.getElementById('nutriIron').innerText = (totalWeight * 0.011).toFixed(1);
+      document.getElementById('nutriVitA').innerText = (totalWeight * 52.1).toFixed(1);
+      document.getElementById('nutriVitC').innerText = (totalWeight * 0.28).toFixed(1);
+    }
+
     function renderLibrary() {
       const grid = document.getElementById('libraryGrid');
+      const notFoundContainer = document.getElementById('libraryNotFoundContainer');
       const searchKeyword = document.getElementById('librarySearchInput').value.trim().toLowerCase();
 
-      const triedIngredients = new Set();
-      appData.meals.forEach(m => (m.ingredients || []).forEach(i => triedIngredients.add(typeof i === 'string' ? i : i.name)));
+      const countMap = getIngredientCountMap();
+      const triedIngredients = new Set(Object.keys(countMap));
 
-      let list = appData.foods;
-      if (activeLibraryCategory !== 'all') list = list.filter(f => f.category === activeLibraryCategory);
-      if (searchKeyword) list = list.filter(f => f.name.toLowerCase().includes(searchKeyword));
+      let allergyCount = 0;
+      Object.values(appData.foodStatus).forEach(s => { if (s === 'allergy') allergyCount++; });
+
+      const categories = ['countSort', 'unlocked', 'all', '穀物澱粉', '蔬菜菌菇', '水果', '蛋豆魚肉乳', '海藻其他'];
+      categories.forEach(cat => {
+        const btn = document.getElementById('libCatBtn_' + cat);
+        if (btn) {
+          const isHighlight = (!searchKeyword && cat === activeLibraryCategory) || (searchKeyword && cat === 'all');
+          btn.className = isHighlight 
+            ? "px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-bold whitespace-nowrap shadow-xs" 
+            : "px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 whitespace-nowrap";
+        }
+      });
+
+      let list = [...appData.foods];
+
+      if (searchKeyword) {
+        list = list.filter(f => f.name.toLowerCase().includes(searchKeyword));
+      } else {
+        if (activeLibraryCategory === 'countSort') {
+          list = list.filter(f => countMap[f.name] > 0);
+          list.sort((a, b) => (countMap[b.name] || 0) - (countMap[a.name] || 0));
+        } else if (activeLibraryCategory === 'unlocked') {
+          list = list.filter(f => triedIngredients.has(f.name));
+        } else if (activeLibraryCategory !== 'all') {
+          list = list.filter(f => f.category === activeLibraryCategory);
+        }
+      }
+
+      document.getElementById('unlockedStatsText').innerText = `解鎖 ${triedIngredients.size} / ${appData.foods.length} 種`;
+      document.getElementById('allergyStatsText').innerText = `❌ 過敏 ${allergyCount} 種`;
+
+      if (searchKeyword && !appData.foods.some(f => f.name.toLowerCase() === searchKeyword)) {
+        notFoundContainer.innerHTML = `
+          <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center justify-between gap-2">
+            <span class="text-xs text-emerald-900 font-bold">找不到「${escapeHtml(searchKeyword)}」？</span>
+            <button onclick="promptAddNewFoodWithCat('${escapeHtml(searchKeyword)}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-xs">+ 新增「${escapeHtml(searchKeyword)}」至食材庫</button>
+          </div>`;
+      } else {
+        notFoundContainer.innerHTML = '';
+      }
 
       grid.innerHTML = list.map(food => {
-        const isTried = triedIngredients.has(food.name);
+        const count = countMap[food.name] || 0;
+        const status = appData.foodStatus[food.name] || 'normal';
+
+        let statusIcon = '';
+        if (status === 'like') statusIcon = '❤️ 喜愛';
+        else if (status === 'dislike') statusIcon = '🤢 討厭';
+        else if (status === 'allergy') statusIcon = '❌ 過敏';
+
         return `
-          <div class="bg-white rounded-2xl p-3 border border-slate-200 shadow-sm flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="text-2xl">${food.icon || '🥦'}</span>
+          <div class="bg-white rounded-xl p-2 border ${status === 'allergy' ? 'border-rose-400 bg-rose-50/30' : 'border-slate-200'} shadow-xs flex items-center justify-between">
+            <div class="flex items-center gap-1.5">
+              <span class="text-lg">${food.icon || '🥦'}</span>
               <div>
-                <div class="font-bold text-sm text-slate-800">${escapeHtml(food.name)}</div>
-                <div class="text-[11px] ${isTried ? 'text-emerald-600 font-semibold' : 'text-slate-400'}">${isTried ? '✓ 已解鎖' : '未解鎖'}</div>
+                <div class="font-bold text-xs text-slate-800 break-words">${escapeHtml(food.name)}</div>
+                <div class="text-[9px] ${count > 0 ? 'text-emerald-700 font-extrabold' : 'text-slate-400'}">${count > 0 ? `已吃 ${count} 次` : '未解鎖'}</div>
               </div>
             </div>
-          </div>
-        `;
+            <div class="flex items-center gap-1">
+              ${statusIcon ? `<span class="text-[9px] font-black px-1 py-0.2 rounded ${status === 'allergy' ? 'bg-rose-500 text-black border border-rose-700' : 'bg-slate-100 text-slate-700'}">${statusIcon}</span>` : ''}
+              <button onclick="openFoodEditModal('${escapeHtml(food.name)}')" class="text-slate-400 hover:text-slate-600 p-1 text-[10px]" title="修改食材與分類">✏️</button>
+            </div>
+          </div>`;
       }).join('');
+    }
+
+    function promptAddNewFoodWithCat(presetName = '') {
+      const name = presetName || prompt('請輸入食材名稱：');
+      if (!name || !name.trim()) return;
+      const cleanName = name.trim();
+
+      if (appData.foods.some(f => f.name === cleanName)) {
+        alert('該食材已經存在於食材庫中囉！');
+        return;
+      }
+
+      const catChoice = prompt(`請選擇「${cleanName}」的分類編號：\n1. 🌾 穀物澱粉\n2. 🥦 蔬菜菌菇\n3. 🍎 水果類\n4. 🥩 蛋豆魚肉乳\n5. 🌿 海藻其他`, "3");
+      
+      let category = "水果";
+      if (catChoice === "1") category = "穀物澱粉";
+      else if (catChoice === "2") category = "蔬菜菌菇";
+      else if (catChoice === "3") category = "水果";
+      else if (catChoice === "4") category = "蛋豆魚肉乳";
+      else if (catChoice === "5") category = "海藻其他";
+
+      let icon = "🥦";
+      if (category === "穀物澱粉") icon = "🌾";
+      else if (category === "蔬菜菌菇") icon = "🥦";
+      else if (category === "水果") icon = "🍎";
+      else if (category === "蛋豆魚肉乳") icon = "🥩";
+      else if (category === "海藻其他") icon = "🌿";
+
+      appData.foods.push({ name: cleanName, category: category, icon: icon });
+      saveData();
+      
+      document.getElementById('librarySearchInput').value = '';
+      document.getElementById('pickerSearchInput').value = '';
+      renderLibrary();
+      renderPickerChips();
+      alert(`已成功新增「${cleanName}」至【${category}】！`);
+    }
+
+    function openFoodEditModal(foodName) {
+      const food = appData.foods.find(f => f.name === foodName);
+      if (!food) return;
+      document.getElementById('editingFoodOldName').value = food.name;
+      document.getElementById('editingFoodName').value = food.name;
+      document.getElementById('editingFoodCategory').value = food.category || '水果';
+      document.getElementById('foodEditModal').classList.remove('hidden');
+    }
+
+    function closeFoodEditModal() {
+      document.getElementById('foodEditModal').classList.add('hidden');
+    }
+
+    function saveFoodEdit() {
+      const oldName = document.getElementById('editingFoodOldName').value;
+      const newName = document.getElementById('editingFoodName').value.trim();
+      const newCat = document.getElementById('editingFoodCategory').value;
+
+      if (!newName) {
+        alert('食材名稱不能為空！');
+        return;
+      }
+
+      const food = appData.foods.find(f => f.name === oldName);
+      if (food) {
+        food.name = newName;
+        food.category = newCat;
+        
+        if (newCat === "穀物澱粉") food.icon = "🌾";
+        else if (newCat === "蔬菜菌菇") food.icon = "🥦";
+        else if (newCat === "水果") food.icon = "🍎";
+        else if (newCat === "蛋豆魚肉乳") food.icon = "🥩";
+        else if (newCat === "海藻其他") food.icon = "🌿";
+
+        if (oldName !== newName) {
+          appData.meals.forEach(meal => {
+            (meal.items || []).forEach(it => {
+              if (it.type === 'food' && it.name === oldName) it.name = newName;
+              if (it.type === 'combo' && it.ingredients) {
+                it.ingredients = it.ingredients.map(sub => sub === oldName ? newName : sub);
+              }
+            });
+            (meal.ingredients || []).forEach(ing => {
+              if (typeof ing === 'object' && ing.name === oldName) ing.name = newName;
+              else if (typeof ing === 'string' && ing === oldName) ing = newName;
+            });
+          });
+
+          if (appData.foodStatus[oldName] !== undefined) {
+            appData.foodStatus[newName] = appData.foodStatus[oldName];
+            delete appData.foodStatus[oldName];
+          }
+
+          (appData.combos || []).forEach(combo => {
+            if (combo.ingredients) {
+              combo.ingredients = combo.ingredients.map(i => i === oldName ? newName : i);
+            }
+          });
+        }
+
+        saveData();
+        closeFoodEditModal();
+        renderLibrary();
+        renderDailyCards();
+        renderCalendar();
+        renderAnalysis();
+        alert(`已成功更新「${oldName}」為「${newName}」！`);
+      }
+    }
+
+    function deleteCurrentFood() {
+      const foodName = document.getElementById('editingFoodOldName').value;
+      if (!foodName) return;
+
+      if (confirm(`確定要從食材庫中徹底刪除「${foodName}」嗎？\n（此操作無法復原）`)) {
+        appData.foods = appData.foods.filter(f => f.name !== foodName);
+        if (appData.foodStatus[foodName]) {
+          delete appData.foodStatus[foodName];
+        }
+        saveData();
+        closeFoodEditModal();
+        renderLibrary();
+        renderPickerChips();
+        renderDailyCards();
+        renderCalendar();
+        alert(`已成功刪除食材「${foodName}」！`);
+      }
     }
 
     function filterLibraryCategory(cat) {
       activeLibraryCategory = cat;
+      document.getElementById('librarySearchInput').value = '';
       renderLibrary();
     }
 
-    function openMealModal(presetDate = null) {
+    function openMealModal(mealToEdit = null, presetDate = null) {
       document.getElementById('mealForm').reset();
-      document.getElementById('editingMealId').value = '';
-      document.getElementById('mealDate').value = presetDate || document.getElementById('dailyDateFilter').value || new Date().toISOString().split('T')[0];
-      selectedMealIngredients = [];
+
+      if (mealToEdit) {
+        document.getElementById('modalHeaderLabel').innerText = '編輯餐點紀錄';
+        document.getElementById('submitMealBtnLabel').innerText = '儲存修改內容';
+        document.getElementById('editingMealId').value = mealToEdit.id;
+        document.getElementById('mealDate').value = mealToEdit.date;
+        document.getElementById('mealTime').value = mealToEdit.time || '09:00';
+        document.getElementById('mealType').value = mealToEdit.type || '早餐';
+        document.getElementById('mealWeight').value = mealToEdit.weight || '';
+        document.getElementById('mealFinishStatus').value = mealToEdit.finishStatus || '全部吃完';
+        document.getElementById('mealTexture').value = mealToEdit.texture || '十倍粥 / 米湯';
+        document.getElementById('mealNotes').value = mealToEdit.notes || '';
+
+        if (mealToEdit.items && mealToEdit.items.length > 0) {
+          selectedMealItems = JSON.parse(JSON.stringify(mealToEdit.items));
+        } else if (mealToEdit.comboName) {
+          const matchedCombo = (appData.combos || []).find(c => c.name === mealToEdit.comboName);
+          const comboOriginalIngs = matchedCombo ? matchedCombo.ingredients : [];
+          selectedMealItems = [{
+            type: 'combo',
+            name: mealToEdit.comboName,
+            ingredients: comboOriginalIngs.length > 0 ? comboOriginalIngs : (mealToEdit.ingredients || []).map(i => typeof i === 'string' ? i : i.name)
+          }];
+          (mealToEdit.ingredients || []).forEach(i => {
+            const ingName = typeof i === 'string' ? i : i.name;
+            if (!comboOriginalIngs.includes(ingName)) {
+              selectedMealItems.push({ type: 'food', name: ingName });
+            }
+          });
+        } else {
+          selectedMealItems = (mealToEdit.ingredients || []).map(item => ({
+            type: 'food',
+            name: typeof item === 'string' ? item : item.name
+          }));
+        }
+      } else {
+        document.getElementById('modalHeaderLabel').innerText = '紀錄餐點食材';
+        document.getElementById('submitMealBtnLabel').innerText = '儲存餐點紀錄';
+        document.getElementById('editingMealId').value = '';
+        document.getElementById('mealDate').value = presetDate || document.getElementById('dailyDateFilter').value || getLocalDateString();
+        document.getElementById('mealTime').value = '09:00';
+        document.getElementById('mealFinishStatus').value = '全部吃完';
+        autoUpdateMealTypeByTime();
+        selectedMealItems = [];
+      }
+
+      document.getElementById('pickerSearchInput').value = '';
       renderSelectedIngredientsList();
       renderPickerChips();
       document.getElementById('mealModal').classList.remove('hidden');
+    }
+
+    function editMeal(mealId) {
+      const meal = appData.meals.find(m => m.id === mealId);
+      if (meal) openMealModal(meal);
     }
 
     function closeMealModal() {
@@ -528,78 +1335,219 @@
 
     function switchPickerCategory(cat) {
       activePickerCategory = cat;
+      const categories = ['combo', 'all', '穀物澱粉', '蔬菜菌菇', '水果', '蛋豆魚肉乳', '海藻其他'];
+      categories.forEach(c => {
+        const btn = document.getElementById('pickCatBtn_' + c);
+        if (btn) {
+          btn.className = (c === cat)
+            ? "px-2 py-0.5 rounded-md bg-amber-500 text-white font-bold whitespace-nowrap text-[11px]"
+            : "px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap text-[11px]";
+        }
+      });
       renderPickerChips();
     }
 
     function renderPickerChips() {
       const container = document.getElementById('pickerChipsContainer');
-      const searchKey = document.getElementById('pickerSearchInput').value.trim().toLowerCase();
-      const triedSet = new Set();
-      appData.meals.forEach(m => (m.ingredients || []).forEach(i => triedSet.add(typeof i === 'string' ? i : i.name)));
+      const searchKey = document.getElementById('pickerSearchInput').value.trim();
+      const searchKeyLower = searchKey.toLowerCase();
 
-      let filtered = appData.foods;
-      if (searchKey) filtered = filtered.filter(f => f.name.toLowerCase().includes(searchKey));
-      else if (activePickerCategory === 'unlocked') filtered = filtered.filter(f => triedSet.has(f.name));
-      else filtered = filtered.filter(f => f.category === activePickerCategory);
+      let html = '';
 
-      container.innerHTML = filtered.map(food => {
-        const isSelected = selectedMealIngredients.some(i => i.name === food.name);
-        return `
-          <button type="button" onclick="togglePickIngredient('${escapeHtml(food.name)}')" class="px-3 py-1.5 rounded-xl text-xs font-medium border flex items-center gap-1.5 ${isSelected ? 'bg-emerald-600 text-white font-bold shadow-sm' : 'bg-white text-slate-700 hover:bg-slate-100'}">
-            <span>${food.icon || '🥦'}</span>
-            <span>${escapeHtml(food.name)}</span>
-          </button>
-        `;
-      }).join('');
+      if (searchKey) {
+        const matchedCombos = (appData.combos || []).filter(c => c.name.toLowerCase().includes(searchKeyLower));
+        matchedCombos.forEach(c => {
+          html += `
+            <div class="inline-flex items-center gap-1 bg-amber-50 border border-amber-300 rounded-lg px-2 py-1 text-xs mb-1">
+              <button type="button" onclick="addComboToMeal('${c.id}')" class="font-bold text-amber-900 hover:underline">🍱 ${escapeHtml(c.name)} (${c.ingredients.join('、')})</button>
+            </div>`;
+        });
+
+        const matchedFoods = appData.foods.filter(f => f.name.toLowerCase().includes(searchKeyLower));
+        matchedFoods.forEach(food => {
+          const isSelected = selectedMealItems.some(it => it.type === 'food' && it.name === food.name);
+          html += `<button type="button" onclick="togglePickIngredient('${escapeHtml(food.name)}')" class="px-2 py-0.5 rounded-lg text-xs font-medium border flex items-center gap-1 ${isSelected ? 'bg-emerald-600 text-white font-bold' : 'bg-white text-slate-700 hover:bg-slate-100'}"><span>${food.icon || '🥦'}</span><span>${escapeHtml(food.name)}</span></button>`;
+        });
+
+        if (!appData.foods.some(f => f.name.toLowerCase() === searchKeyLower)) {
+          html += `<button type="button" onclick="promptAddNewFoodWithCat('${escapeHtml(searchKey)}')" class="w-full mb-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700">+ 新增「${escapeHtml(searchKey)}」至食材庫並選取</button>`;
+        }
+      } else {
+        if (activePickerCategory === 'combo') {
+          let comboList = appData.combos || DEFAULT_COMBOS;
+          html = comboList.map(c => `
+            <div class="inline-flex items-center gap-1 bg-amber-50 border border-amber-300 rounded-lg px-2 py-1 text-xs">
+              <button type="button" onclick="addComboToMeal('${c.id}')" class="font-bold text-amber-900 hover:underline">🍱 ${escapeHtml(c.name)} (${c.ingredients.join('、')})</button>
+              <button type="button" onclick="deleteCombo('${c.id}')" class="text-slate-400 hover:text-rose-600 ml-1 text-[10px]" title="刪除組合">✕</button>
+            </div>
+          `).join('');
+
+          if (!html) html = `<div class="text-xs text-slate-400 p-1">尚無食物組合，可在下方選擇食材後點擊「💾 將已選食材打包為新組合」建立！</div>`;
+        } else {
+          let filtered = appData.foods;
+          if (activePickerCategory !== 'all') filtered = filtered.filter(f => f.category === activePickerCategory);
+
+          html += filtered.map(food => {
+            const isSelected = selectedMealItems.some(it => it.type === 'food' && it.name === food.name);
+            return `<button type="button" onclick="togglePickIngredient('${escapeHtml(food.name)}')" class="px-2 py-0.5 rounded-lg text-xs font-medium border flex items-center gap-1 ${isSelected ? 'bg-emerald-600 text-white font-bold' : 'bg-white text-slate-700 hover:bg-slate-100'}"><span>${food.icon || '🥦'}</span><span>${escapeHtml(food.name)}</span></button>`;
+          }).join('');
+        }
+      }
+
+      container.innerHTML = html;
+    }
+
+    function addComboToMeal(comboId) {
+      const combo = (appData.combos || []).find(c => c.id === comboId);
+      if (combo) {
+        if (!selectedMealItems.some(it => it.type === 'combo' && it.name === combo.name)) {
+          selectedMealItems.push({
+            type: 'combo',
+            name: combo.name,
+            ingredients: [...combo.ingredients]
+          });
+        }
+        document.getElementById('pickerSearchInput').value = '';
+        renderSelectedIngredientsList();
+        renderPickerChips();
+      }
+    }
+
+    function saveCurrentAsCombo() {
+      const foodOnly = selectedMealItems.filter(it => it.type === 'food').map(it => it.name);
+      if (foodOnly.length === 0) {
+        alert('請先在下方挑選幾種獨立食材，才能打包為組合！');
+        return;
+      }
+      const comboName = prompt('請輸入食物組合名稱（例如：豬肉粥、蘋果優格）：');
+      if (comboName && comboName.trim()) {
+        if (!appData.combos) appData.combos = [];
+        appData.combos.push({
+          id: 'combo_' + Date.now(),
+          name: comboName.trim(),
+          ingredients: foodOnly
+        });
+        saveData();
+        activePickerCategory = 'combo';
+        document.getElementById('pickerSearchInput').value = '';
+        renderPickerChips();
+        alert(`已成功建立「${comboName.trim()}」食物組合！`);
+      }
+    }
+
+    function deleteCombo(comboId) {
+      if (confirm('確定要刪除這個食物組合嗎？')) {
+        appData.combos = (appData.combos || []).filter(c => c.id !== comboId);
+        saveData();
+        renderPickerChips();
+      }
     }
 
     function togglePickIngredient(name) {
-      const idx = selectedMealIngredients.findIndex(i => i.name === name);
-      if (idx >= 0) selectedMealIngredients.splice(idx, 1);
-      else selectedMealIngredients.push({ name: name, isNew: false });
+      const idx = selectedMealItems.findIndex(it => it.type === 'food' && it.name === name);
+      if (idx >= 0) {
+        selectedMealItems.splice(idx, 1);
+      } else {
+        selectedMealItems.push({ type: 'food', name: name });
+      }
+      document.getElementById('pickerSearchInput').value = '';
+      renderSelectedIngredientsList();
+      renderPickerChips();
+    }
+
+    function removeSelectedItem(index) {
+      selectedMealItems.splice(index, 1);
       renderSelectedIngredientsList();
       renderPickerChips();
     }
 
     function renderSelectedIngredientsList() {
       const container = document.getElementById('selectedIngredientsList');
-      document.getElementById('selectedIngredientsCount').innerText = `${selectedMealIngredients.length} 項`;
-      container.innerHTML = selectedMealIngredients.map((item, index) => `
-        <div class="bg-white border border-slate-200 rounded-xl p-2.5 flex items-center justify-between text-xs">
-          <span class="font-bold text-slate-800">${escapeHtml(item.name)}</span>
-          <button type="button" onclick="toggleIngredientNewFlag(${index})" class="px-2.5 py-1 rounded-lg font-bold ${item.isNew ? 'bg-amber-400 text-slate-900' : 'bg-slate-100 text-slate-500'}">
-            ${item.isNew ? '新食材' : '+ 標為新食材'}
-          </button>
-        </div>
-      `).join('');
+      document.getElementById('selectedIngredientsCount').innerText = `${selectedMealItems.length} 項`;
+
+      container.innerHTML = selectedMealItems.map((item, index) => {
+        if (item.type === 'combo') {
+          return `
+            <div class="bg-amber-50/80 border border-amber-200 rounded-lg p-2 flex items-center justify-between text-xs shadow-2xs">
+              <div>
+                <span class="font-extrabold text-amber-950">🍱 ${escapeHtml(item.name)}</span>
+                <span class="text-[10px] text-amber-700 ml-1">(${(item.ingredients || []).join('、')})</span>
+              </div>
+              <button type="button" onclick="removeSelectedItem(${index})" class="text-slate-400 hover:text-rose-600 font-bold px-1.5 py-0.5">✕ 移除</button>
+            </div>`;
+        } else {
+          const currentStatus = appData.foodStatus[item.name] || 'normal';
+          return `
+            <div class="bg-white border border-slate-200 rounded-lg p-1.5 space-y-1 text-xs shadow-2xs">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-xs text-slate-800 break-words">${escapeHtml(item.name)}</span>
+                <button type="button" onclick="removeSelectedItem(${index})" class="text-slate-400 hover:text-rose-600 font-bold px-1">✕</button>
+              </div>
+              <div class="flex items-center gap-0.5 pt-0.5 border-t border-slate-100 text-[10px]">
+                <span class="text-slate-500 font-medium">試敏:</span>
+                <button type="button" onclick="setFoodStatus('${escapeHtml(item.name)}', 'like')" class="px-1 py-0.2 rounded border ${currentStatus === 'like' ? 'bg-rose-100 border-rose-400 text-rose-800 font-bold' : 'bg-slate-50 text-slate-600'}">❤️ 喜歡</button>
+                <button type="button" onclick="setFoodStatus('${escapeHtml(item.name)}', 'normal')" class="px-1 py-0.2 rounded border ${currentStatus === 'normal' ? 'bg-slate-200 border-slate-400 text-slate-800 font-bold' : 'bg-slate-50 text-slate-600'}">😐 普通</button>
+                <button type="button" onclick="setFoodStatus('${escapeHtml(item.name)}', 'dislike')" class="px-1 py-0.2 rounded border ${currentStatus === 'dislike' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 text-slate-600'}">🤢 討厭</button>
+                <button type="button" onclick="setFoodStatus('${escapeHtml(item.name)}', 'allergy')" class="px-1 py-0.2 rounded border ${currentStatus === 'allergy' ? 'bg-rose-600 text-black font-extrabold border border-rose-800' : 'bg-slate-50 text-rose-600 border-rose-200'}">❌ 過敏</button>
+              </div>
+            </div>`;
+        }
+      }).join('');
     }
 
-    function toggleIngredientNewFlag(index) {
-      selectedMealIngredients[index].isNew = !selectedMealIngredients[index].isNew;
+    function setFoodStatus(foodName, status) {
+      appData.foodStatus[foodName] = status;
+      saveData();
       renderSelectedIngredientsList();
+      renderDailyCards();
+      renderCalendar();
+      renderAnalysis();
     }
 
     function handleMealSubmit(e) {
       e.preventDefault();
-      if (selectedMealIngredients.length === 0) {
-        alert('請至少選擇一種食材！');
+      if (selectedMealItems.length === 0) {
+        alert('請至少選擇一種食材或食物組合！');
         return;
       }
 
-      appData.meals.push({
-        id: 'meal_' + Date.now(),
+      const editingId = document.getElementById('editingMealId').value;
+      
+      const flatIngredients = [];
+      selectedMealItems.forEach(it => {
+        if (it.type === 'combo') (it.ingredients || []).forEach(sub => flatIngredients.push(sub));
+        else flatIngredients.push(it.name);
+      });
+
+      const firstCombo = selectedMealItems.find(it => it.type === 'combo');
+
+      const mealData = {
+        id: editingId || ('meal_' + Date.now()),
         date: document.getElementById('mealDate').value,
         time: document.getElementById('mealTime').value,
         type: document.getElementById('mealType').value,
+        weight: document.getElementById('mealWeight').value.trim(),
+        finishStatus: document.getElementById('mealFinishStatus').value,
+        texture: document.getElementById('mealTexture').value,
         notes: document.getElementById('mealNotes').value.trim(),
-        ingredients: selectedMealIngredients.map(i => ({ name: i.name })),
-        newIngredients: selectedMealIngredients.filter(i => i.isNew).map(i => i.name)
-      });
+        comboName: firstCombo ? firstCombo.name : '',
+        items: JSON.parse(JSON.stringify(selectedMealItems)),
+        ingredients: flatIngredients
+      };
+
+      if (editingId) {
+        const index = appData.meals.findIndex(m => m.id === editingId);
+        if (index >= 0) appData.meals[index] = mealData;
+      } else {
+        appData.meals.push(mealData);
+      }
 
       saveData();
       closeMealModal();
-      document.getElementById('dailyDateFilter').value = document.getElementById('mealDate').value;
+      document.getElementById('dailyDateFilter').value = mealData.date;
       renderDailyCards();
+      renderCalendar();
+      renderAnalysis();
     }
 
     function deleteMeal(id) {
@@ -607,12 +1555,14 @@
         appData.meals = appData.meals.filter(m => m.id !== id);
         saveData();
         renderDailyCards();
+        renderCalendar();
+        renderAnalysis();
       }
     }
 
     function updateBadges() {
-      const triedSet = new Set();
-      appData.meals.forEach(m => (m.ingredients || []).forEach(i => triedSet.add(typeof i === 'string' ? i : i.name)));
+      const countMap = getIngredientCountMap();
+      const triedSet = new Set(Object.keys(countMap));
       document.getElementById('libraryCountBadge').innerText = triedSet.size;
     }
 
@@ -622,6 +1572,7 @@
         appData.syncCode = code.trim();
         document.getElementById('syncCodeDisplay').innerText = appData.syncCode;
         saveData();
+        initFirebaseListener();
       }
     }
 

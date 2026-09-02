@@ -64,7 +64,6 @@
       width: 100%;
     }
 
-    /* 月曆食物標籤強制換行與完整顯示 */
     .cal-chip {
       word-break: break-all;
       overflow-wrap: break-word;
@@ -311,8 +310,8 @@
       <form id="mealForm" onsubmit="handleMealSubmit(event)" class="p-3.5 sm:p-5 space-y-3">
         <input type="hidden" id="editingMealId" value="">
 
-        <!-- 時間與基本資訊 -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 bg-slate-50 p-2.5 rounded-2xl border border-slate-200/80">
+        <!-- 時間與基本資訊 (加入食用狀況) -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-2 bg-slate-50 p-2.5 rounded-2xl border border-slate-200/80">
           <div>
             <label class="block text-[11px] font-bold text-emerald-800 mb-0.5">⏰ 食用時間</label>
             <input type="time" id="mealTime" value="09:00" required oninput="autoUpdateMealTypeByTime()" onchange="autoUpdateMealTypeByTime()" class="w-full border border-slate-300 rounded-lg px-2 py-1 text-xs bg-white font-bold focus:ring-1 focus:ring-emerald-500">
@@ -335,6 +334,15 @@
           <div>
             <label class="block text-[11px] font-bold text-slate-700 mb-0.5">食用總量 (g/ml)</label>
             <input type="number" id="mealWeight" placeholder="例：80" class="w-full border border-slate-300 rounded-lg px-2 py-1 text-xs bg-white focus:ring-1 focus:ring-emerald-500">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-emerald-800 mb-0.5">🥣 食用狀況</label>
+            <select id="mealFinishStatus" class="w-full border border-slate-300 rounded-lg px-2 py-1 text-xs bg-white font-bold focus:ring-1 focus:ring-emerald-500">
+              <option value="全部吃完" selected>🥣 全部吃完</option>
+              <option value="吃大半">😋 吃大半 (約 3/4)</option>
+              <option value="吃一半">😐 吃一半</option>
+              <option value="剩很多">🥣 剩很多 / 淺嚐</option>
+            </select>
           </div>
         </div>
 
@@ -710,7 +718,7 @@
       return `${ampm} ${hour}:${m}`;
     }
 
-    /* 按日視圖渲染 */
+    /* 按日視圖渲染：標示食用狀況（全部吃完/吃大半等） */
     function renderDailyCards() {
       const container = document.getElementById('dailyCardsContainer');
       const targetDate = document.getElementById('dailyDateFilter').value;
@@ -815,13 +823,21 @@
           }
         }).join('');
 
+        // 食用狀況徽章色彩樣式
+        const finish = meal.finishStatus || '全部吃完';
+        let finishBadgeClass = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+        if (finish === '吃大半') finishBadgeClass = 'bg-teal-100 text-teal-800 border-teal-300';
+        else if (finish === '吃一半') finishBadgeClass = 'bg-amber-100 text-amber-800 border-amber-300';
+        else if (finish === '剩很多') finishBadgeClass = 'bg-orange-100 text-orange-800 border-orange-300';
+
         html += `
           <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/70 shadow-sm space-y-3">
             <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-1.5 flex-wrap">
                 <span class="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md">${meal.type || '餐點'}</span>
                 <span class="text-base sm:text-lg font-black text-slate-900 tracking-tight">${timeDisplay}</span>
                 ${meal.weight ? `<span class="text-slate-400 text-xs font-semibold">(${meal.weight}g)</span>` : ''}
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md border ${finishBadgeClass}">✓ ${escapeHtml(finish)}</span>
               </div>
               <div class="flex items-center gap-1">
                 <button onclick="editMeal('${meal.id}')" class="text-slate-400 hover:text-slate-700 p-1.5 text-sm font-bold" title="編輯"><i class="fa-solid fa-pen-to-square"></i></button>
@@ -866,7 +882,7 @@
       }
     }
 
-    /* 按月日曆渲染：文字多行完整顯示 + 強制折行不截斷 */
+    /* 按月日曆渲染 */
     function renderCalendar() {
       const year = calendarCurrentDate.getFullYear();
       const month = calendarCurrentDate.getMonth();
@@ -1265,6 +1281,7 @@
         document.getElementById('mealTime').value = mealToEdit.time || '09:00';
         document.getElementById('mealType').value = mealToEdit.type || '早餐';
         document.getElementById('mealWeight').value = mealToEdit.weight || '';
+        document.getElementById('mealFinishStatus').value = mealToEdit.finishStatus || '全部吃完';
         document.getElementById('mealTexture').value = mealToEdit.texture || '十倍粥 / 米湯';
         document.getElementById('mealNotes').value = mealToEdit.notes || '';
 
@@ -1296,6 +1313,7 @@
         document.getElementById('editingMealId').value = '';
         document.getElementById('mealDate').value = presetDate || document.getElementById('dailyDateFilter').value || getLocalDateString();
         document.getElementById('mealTime').value = '09:00';
+        document.getElementById('mealFinishStatus').value = '全部吃完';
         autoUpdateMealTypeByTime();
         selectedMealItems = [];
       }
@@ -1509,6 +1527,7 @@
         time: document.getElementById('mealTime').value,
         type: document.getElementById('mealType').value,
         weight: document.getElementById('mealWeight').value.trim(),
+        finishStatus: document.getElementById('mealFinishStatus').value,
         texture: document.getElementById('mealTexture').value,
         notes: document.getElementById('mealNotes').value.trim(),
         comboName: firstCombo ? firstCombo.name : '',

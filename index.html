@@ -415,18 +415,21 @@
       { name: '芥藍菜', category: '蔬菜菌菇', icon: '🥬' },
       { name: '空心菜', category: '蔬菜菌菇', icon: '🥬' },
       { name: '長豆(豇豆)', category: '蔬菜菌菇', icon: '🥬' },
+      { name: '大黃瓜（又名胡瓜、刺瓜）', category: '蔬菜菌菇', icon: '🥒' },
+      { name: '洋蔥', category: '蔬菜菌菇', icon: '🧅' },
+      { name: '牛番茄', category: '蔬菜菌菇', icon: '🍅' },
       { name: '黑木耳', category: '蔬菜菌菇', icon: '🍄' },
       { name: '白木耳', category: '蔬菜菌菇', icon: '⚪' },
       { name: '絲瓜', category: '蔬菜菌菇', icon: '🥒' },
       { name: '小黃瓜', category: '蔬菜菌菇', icon: '🥒' },
       { name: '冬瓜', category: '蔬菜菌菇', icon: '🍈' },
       { name: '茄子', category: '蔬菜菌菇', icon: '🍆' },
-      { name: '番茄', category: '蔬菜菌菇', icon: '🍅' },
-      { name: '洋蔥', category: '蔬菜菌菇', icon: '🧅' },
       { name: '香菇', category: '蔬菜菌菇', icon: '🍄' },
+      { name: '香瓜', category: '水果', icon: '🍈' },
       { name: '柿子', category: '水果', icon: '🍅' },
       { name: '蘋果', category: '水果', icon: '🍎' },
       { name: '香蕉', category: '水果', icon: '🍌' },
+      { name: '黃金奇異果', category: '水果', icon: '🥝' },
       { name: '水梨', category: '水果', icon: '🍐' },
       { name: '芭樂', category: '水果', icon: '🍈' },
       { name: '紅肉火龍果', category: '水果', icon: '🐉' },
@@ -434,9 +437,8 @@
       { name: '木瓜', category: '水果', icon: '🍈' },
       { name: '葡萄', category: '水果', icon: '🍇' },
       { name: '草莓', category: '水果', icon: '🍓' },
-      { name: '奇異果', category: '水果', icon: '🥝' },
       { name: '酪梨', category: '水果', icon: '🥑' },
-      { name: '優格', category: '蛋豆魚肉乳', icon: '🥛' },
+      { name: '黑豆', category: '蛋豆魚肉乳', icon: '🖤' },
       { name: '蛋黃', category: '蛋豆魚肉乳', icon: '🍳' },
       { name: '蛋白', category: '蛋豆魚肉乳', icon: '🥚' },
       { name: '嫩豆腐', category: '蛋豆魚肉乳', icon: '🧊' },
@@ -680,7 +682,6 @@
       return `${ampm} ${hour}:${m}`;
     }
 
-    /* 生成單項食材的 HTML 結構 */
     function renderIngredientItemHtml(item, mealDate, earliestMap, textureText = '') {
       const ingName = typeof item === 'string' ? item : item.name;
       const isFirstEverOccur = earliestMap[ingName] === mealDate;
@@ -722,7 +723,6 @@
         </div>`;
     }
 
-    /* 按日視圖：食物組合直接包覆食材，非組合食材分開呈現 */
     function renderDailyCards() {
       const container = document.getElementById('dailyCardsContainer');
       const targetDate = document.getElementById('dailyDateFilter').value;
@@ -767,7 +767,6 @@
           singleIngredients.push(...allIngredients);
         }
 
-        // 1. 食物組合區塊（食材直接呈現在組合卡片內部）
         let comboBlockHtml = '';
         if (meal.comboName) {
           const comboInnerItemsHtml = comboIngredients.map(item => renderIngredientItemHtml(item, meal.date, earliestMap, meal.texture)).join('');
@@ -785,7 +784,6 @@
             </div>`;
         }
 
-        // 2. 單獨食材區塊
         const singleItemsHtml = singleIngredients.map(item => renderIngredientItemHtml(item, meal.date, earliestMap, meal.texture)).join('');
 
         html += `
@@ -844,6 +842,7 @@
       }
     }
 
+    /* 修正按月日曆：確保食物組合 + 額外單品食材全都完整呈現 */
     function renderCalendar() {
       const year = calendarCurrentDate.getFullYear();
       const month = calendarCurrentDate.getMonth();
@@ -867,16 +866,24 @@
 
         const displayItems = [];
         dayMeals.forEach(meal => {
+          const comboObj = meal.comboName ? (appData.combos || []).find(c => c.name === meal.comboName) : null;
+          const comboIngNames = comboObj ? new Set(comboObj.ingredients) : new Set();
+
+          // 1. 若有食物組合名稱，先放入組合
           if (meal.comboName) {
             displayItems.push({ name: meal.comboName, type: 'combo' });
-          } else {
-            (meal.ingredients || []).forEach(i => {
-              const ingName = typeof i === 'string' ? i : i.name;
-              displayItems.push({ name: ingName, type: 'food' });
-            });
           }
+
+          // 2. 遍歷食材：若不屬於組合內（單品食材），或是沒有組合名稱的餐點，全部加入呈現
+          (meal.ingredients || []).forEach(i => {
+            const ingName = typeof i === 'string' ? i : i.name;
+            if (!meal.comboName || !comboIngNames.has(ingName)) {
+              displayItems.push({ name: ingName, type: 'food' });
+            }
+          });
         });
 
+        // 排除重複項目
         const seen = new Set();
         const uniqueItems = displayItems.filter(item => {
           if (seen.has(item.name)) return false;
@@ -1354,7 +1361,6 @@
       renderPickerChips();
     }
 
-    /* 直接從已選清單中移除指定食材 */
     function removeSelectedIngredient(index) {
       if (index >= 0 && index < selectedMealIngredients.length) {
         selectedMealIngredients.splice(index, 1);
@@ -1380,7 +1386,6 @@
           <div class="bg-white border border-slate-200 rounded-lg p-1.5 space-y-1 text-xs shadow-2xs">
             <div class="flex items-center justify-between">
               <span class="font-bold text-xs text-slate-800">${escapeHtml(item.name)}</span>
-              <!-- 直接刪除按鈕 -->
               <button type="button" onclick="removeSelectedIngredient(${index})" class="text-slate-400 hover:text-rose-600 px-1.5 py-0.5 rounded text-xs font-bold transition-all" title="從此餐移除">
                 <i class="fa-solid fa-xmark"></i> 移除
               </button>

@@ -50,9 +50,11 @@
     .cat-veg   { background-color: #dcfce7; color: #14532d; border-color: #bbf7d0; }
     .cat-fruit { background-color: #ffe4e6; color: #881337; border-color: #fecdd3; }
     .cat-meat  { background-color: #ffedd5; color: #7c2d12; border-color: #fed7aa; }
-    .cat-combo { background-color: #f1f5f9; color: #1e293b; border-color: #e2e8f0; font-weight: 800; }
+    .cat-combo { background-color: #f1f5f9; color: #1e293b; border-color: #cbd5e1; font-weight: 800; }
     .cat-other { background-color: #e0f2fe; color: #0c4a6e; border-color: #bae6fd; }
     .cat-allergy { background-color: #f87171; color: #ffffff; border-color: #dc2626; font-weight: 900; }
+    
+    .is-first-new { ring: 1.5px; ring-color: #f59e0b; border-color: #f59e0b !important; font-weight: 800 !important; }
   </style>
 </head>
 <body class="text-slate-800 antialiased min-h-screen flex flex-col pb-8">
@@ -111,7 +113,7 @@
   <!-- 主要內容區 -->
   <main class="max-w-7xl mx-auto px-2.5 sm:px-6 pt-2.5 flex-1 w-full">
 
-    <!-- 1. 按日視圖 (截圖風時間卡片版) -->
+    <!-- 1. 按日視圖 (卡片式時間／餐別清晰分開，且完整顯示所有食材) -->
     <section id="viewDaily" class="space-y-3">
       <div class="flex items-center justify-between bg-white px-3 py-2 rounded-2xl border border-slate-200 shadow-xs flex-wrap gap-1.5">
         <div class="flex items-center gap-1.5 flex-wrap">
@@ -127,7 +129,7 @@
           </button>
         </div>
       </div>
-      <div id="dailyCardsContainer" class="space-y-2.5"></div>
+      <div id="dailyCardsContainer" class="space-y-3"></div>
     </section>
 
     <!-- 2. 按月視圖 -->
@@ -666,7 +668,6 @@
       renderDailyCards();
     }
 
-    /* 格式化顯示時間：如 上午 10:54 或 下午 3:32 */
     function formatMealDisplayTime(timeStr) {
       if (!timeStr) return '';
       const [h, m] = timeStr.split(':');
@@ -677,7 +678,7 @@
       return `${ampm} ${hour}:${m}`;
     }
 
-    /* 按日視圖渲染：精準還原截圖格式 */
+    /* 按日視圖：清晰區分各餐別卡片，且完整列出所有食材與熊頭喜好度 */
     function renderDailyCards() {
       const container = document.getElementById('dailyCardsContainer');
       const targetDate = document.getElementById('dailyDateFilter').value;
@@ -703,74 +704,100 @@
       dayMeals.forEach(meal => {
         const timeDisplay = formatMealDisplayTime(meal.time);
         const isCombo = !!meal.comboName;
-        
-        // 判斷是否包含新嘗試食材
-        let hasNewIngredient = false;
-        (meal.ingredients || []).forEach(i => {
-          const ingName = typeof i === 'string' ? i : i.name;
-          if (earliestMap[ingName] === meal.date) hasNewIngredient = true;
-        });
 
-        // 縮圖與主要顯示文字
-        let mainName = '';
-        let iconHtml = '';
+        // 整理所有食材項目
+        const ingredients = meal.ingredients || [];
 
+        // 組合頭部標記（若為食物組合）
+        let comboHeaderHtml = '';
         if (isCombo) {
-          mainName = meal.comboName;
-          // 食物組合微縮圖
-          const miniIcons = (meal.ingredients || []).slice(0, 2).map(i => {
-            const ingName = typeof i === 'string' ? i : i.name;
-            const fObj = appData.foods.find(f => f.name === ingName) || {};
-            return `<span class="text-xs">${fObj.icon || '🥦'}</span>`;
-          }).join('');
-          iconHtml = `<div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center gap-0.5 shadow-2xs">${miniIcons}</div>`;
-        } else {
-          const singleIng = (meal.ingredients || [])[0];
-          const ingName = typeof singleIng === 'string' ? singleIng : (singleIng ? singleIng.name : '食材');
-          mainName = ingName;
-          const fObj = appData.foods.find(f => f.name === ingName) || {};
-          iconHtml = `<div class="w-10 h-10 rounded-xl bg-amber-50/70 border border-amber-100/50 flex items-center justify-center text-xl shadow-2xs">${fObj.icon || '🥦'}</div>`;
+          comboHeaderHtml = `
+            <div class="bg-amber-50/80 border border-amber-200/70 text-amber-900 px-3 py-1.5 rounded-2xl flex items-center justify-between">
+              <span class="font-black text-sm flex items-center gap-1.5"><span>🍱</span> ${escapeHtml(meal.comboName)}</span>
+              <span class="text-[10px] text-amber-700/80 font-bold">食物組合</span>
+            </div>`;
         }
 
-        // 質地簡寫 (如「泥」)
-        let textureShort = '';
-        if (meal.texture) {
-          if (meal.texture.includes('泥')) textureShort = '泥';
-          else if (meal.texture.includes('粥')) textureShort = '粥';
-          else if (meal.texture.includes('軟飯')) textureShort = '軟飯';
-          else textureShort = meal.texture.split('/')[0].trim();
-        }
+        // 完整列出該餐內「每一種」食材的條目
+        let itemsHtml = ingredients.map(item => {
+          const ingName = typeof item === 'string' ? item : item.name;
+          const isFirstEverOccur = earliestMap[ingName] === meal.date;
+          const foodObj = appData.foods.find(f => f.name === ingName) || {};
+          const status = appData.foodStatus[ingName] || 'normal';
+
+          // 熊頭喜好度邏輯：普通不呈現，喜愛與討厭才呈現可愛熊頭
+          let bearBadgeHtml = '';
+          if (status === 'like') {
+            bearBadgeHtml = `
+              <div class="w-8 h-8 rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center text-sm shadow-2xs" title="喜愛">
+                🥰
+              </div>`;
+          } else if (status === 'dislike') {
+            bearBadgeHtml = `
+              <div class="w-8 h-8 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-sm shadow-2xs" title="討厭">
+                🤢
+              </div>`;
+          } else if (status === 'allergy') {
+            bearBadgeHtml = `
+              <div class="px-1.5 py-0.5 rounded-md bg-rose-600 text-black text-[10px] font-black border border-rose-800 shadow-2xs" title="過敏反應">
+                ❌過敏
+              </div>`;
+          }
+
+          // 質地標籤 (如：泥、粥)
+          let textureShort = '';
+          if (meal.texture) {
+            if (meal.texture.includes('泥')) textureShort = '泥';
+            else if (meal.texture.includes('粥')) textureShort = '粥';
+            else if (meal.texture.includes('軟飯')) textureShort = '軟飯';
+            else textureShort = meal.texture.split('/')[0].trim();
+          }
+
+          return `
+            <div class="flex items-center justify-between bg-slate-50/70 p-2.5 rounded-2xl border border-slate-100">
+              <div class="flex items-center gap-2.5">
+                <div class="w-10 h-10 rounded-xl bg-white border border-slate-200/70 flex items-center justify-center text-xl shadow-2xs">
+                  ${foodObj.icon || '🥦'}
+                </div>
+                <div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="font-extrabold text-base text-slate-800">${escapeHtml(ingName)}</span>
+                    ${isFirstEverOccur ? '<span class="bg-amber-300 text-slate-900 font-black text-[10px] px-1.5 py-0.2 rounded-md leading-tight shadow-2xs">新</span>' : ''}
+                  </div>
+                  ${textureShort ? `<div class="text-[11px] font-bold text-slate-400 mt-0.5">${escapeHtml(textureShort)}</div>` : ''}
+                </div>
+              </div>
+
+              <!-- 右側喜好度 (普通不顯示，喜愛/討厭/過敏才顯示) -->
+              <div>${bearBadgeHtml}</div>
+            </div>`;
+        }).join('');
 
         html += `
           <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-100 shadow-sm space-y-3">
-            <!-- 頂部時間與更多選單按鈕 -->
-            <div class="flex items-center justify-between">
-              <span class="text-base sm:text-lg font-black text-slate-900 tracking-tight">${timeDisplay}</span>
+            <!-- 頂部時間、餐別標籤與操作按鈕 (清晰區分餐別) -->
+            <div class="flex items-center justify-between border-b border-slate-100/80 pb-2">
+              <div class="flex items-center gap-2">
+                <span class="text-base sm:text-lg font-black text-slate-900 tracking-tight">${timeDisplay}</span>
+                <span class="bg-teal-100 text-teal-800 text-[10px] px-2 py-0.5 rounded-lg font-bold">${meal.type || '餐點'}</span>
+                ${meal.weight ? `<span class="text-slate-400 text-xs font-semibold">(${meal.weight}g)</span>` : ''}
+              </div>
               <div class="flex items-center gap-1">
                 <button onclick="editMeal('${meal.id}')" class="text-slate-300 hover:text-slate-600 p-1 text-base" title="編輯"><i class="fa-solid fa-ellipsis"></i></button>
                 <button onclick="deleteMeal('${meal.id}')" class="text-slate-300 hover:text-rose-500 p-1 text-xs" title="刪除"><i class="fa-solid fa-trash-can"></i></button>
               </div>
             </div>
 
-            <!-- 食物本體內容 -->
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                ${iconHtml}
-                <div>
-                  <div class="flex items-center gap-1.5">
-                    <span class="font-extrabold text-base sm:text-lg text-slate-800">${escapeHtml(mainName)}</span>
-                    ${hasNewIngredient ? '<span class="bg-amber-300 text-slate-900 font-black text-[11px] px-1.5 py-0.2 rounded-md leading-tight">新</span>' : ''}
-                  </div>
-                  ${textureShort ? `<div class="text-xs font-bold text-slate-400 mt-0.5">${escapeHtml(textureShort)}</div>` : ''}
-                  ${isCombo ? `<div class="text-[10px] text-slate-400 font-medium">包含: ${(meal.ingredients || []).map(i => typeof i === 'string' ? i : i.name).join('、')}</div>` : ''}
-                </div>
-              </div>
+            <!-- 若為食物組合先呈現組合標頭 -->
+            ${comboHeaderHtml}
 
-              <!-- 右側可愛小熊頭像圖標 (如截圖) -->
-              <div class="w-9 h-9 rounded-full bg-sky-50 border border-sky-100 flex items-center justify-center text-slate-500 text-lg shadow-2xs">
-                🐻
-              </div>
+            <!-- 該餐的所有食材列表 (全部呈現，不遺漏) -->
+            <div class="space-y-2">
+              ${itemsHtml}
             </div>
+
+            <!-- 備註說明 -->
+            ${meal.notes ? `<div class="text-[11px] text-slate-500 bg-slate-50 p-2 rounded-xl border border-slate-100"><b>備註：</b>${escapeHtml(meal.notes)}</div>` : ''}
           </div>`;
       });
 
@@ -807,7 +834,7 @@
       }
     }
 
-    /* 按月日曆渲染：食物組合呈現組合名（如截圖中 9/2 呈現「豬肉粥」、「柿子」） */
+    /* 按月日曆渲染 */
     function renderCalendar() {
       const year = calendarCurrentDate.getFullYear();
       const month = calendarCurrentDate.getMonth();
@@ -819,6 +846,7 @@
       grid.innerHTML = '';
 
       const todayStr = getLocalDateString();
+      const earliestMap = getEarliestDateMap();
 
       for (let i = 0; i < firstDay; i++) {
         grid.innerHTML += `<div class="min-h-[60px]"></div>`;
@@ -828,7 +856,6 @@
         const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         const dayMeals = appData.meals.filter(m => m.date === dateStr);
 
-        // 整理要呈現在日曆格中的標籤清單（優先呈現組合名稱，非組合才呈現個別食材）
         const displayItems = [];
         dayMeals.forEach(meal => {
           if (meal.comboName) {
@@ -841,7 +868,6 @@
           }
         });
 
-        // 避免同名重複
         const seen = new Set();
         const uniqueItems = displayItems.filter(item => {
           if (seen.has(item.name)) return false;
@@ -851,17 +877,18 @@
 
         let ingredientsChipsHtml = uniqueItems.map(item => {
           if (item.type === 'combo') {
-            return `<div class="w-full bg-slate-100/90 text-slate-800 font-bold px-0.5 py-0.5 rounded-md text-[8px] sm:text-[10px] text-center border border-slate-200 shadow-2xs whitespace-nowrap tracking-tighter">${escapeHtml(item.name)}</div>`;
+            return `<div class="w-full bg-slate-100 text-slate-800 font-extrabold px-0.5 py-0.5 rounded-md text-[8px] sm:text-[10px] text-center border border-slate-200 shadow-2xs whitespace-nowrap tracking-tighter">${escapeHtml(item.name)}</div>`;
           } else {
             const foodObj = appData.foods.find(f => f.name === item.name) || {};
             const cat = foodObj.category || '海藻其他';
+            const isFirstEverOccur = earliestMap[item.name] === dateStr;
             let catClass = 'cat-other';
             if (cat === '穀物澱粉') catClass = 'cat-grain';
             else if (cat === '蔬菜菌菇') catClass = 'cat-veg';
             else if (cat === '水果') catClass = 'cat-fruit';
             else if (cat === '蛋豆魚肉乳') catClass = 'cat-meat';
 
-            return `<div class="w-full ${catClass} px-0.5 py-0.5 rounded-md text-[8px] sm:text-[10px] text-center border shadow-2xs whitespace-nowrap tracking-tighter">${escapeHtml(item.name)}</div>`;
+            return `<div class="w-full ${catClass} ${isFirstEverOccur ? 'is-first-new' : ''} px-0.5 py-0.5 rounded-md text-[8px] sm:text-[10px] text-center border shadow-2xs whitespace-nowrap tracking-tighter">${escapeHtml(item.name)}${isFirstEverOccur ? '✨' : ''}</div>`;
           }
         }).join('');
 
@@ -1311,9 +1338,6 @@
       } else {
         selectedMealIngredients.push({ name: name });
       }
-      // 手動單獨挑選食材時，清空當前的組合名稱標籤
-      currentChosenComboName = '';
-      document.getElementById('mealComboName').value = '';
       document.getElementById('pickerSearchInput').value = '';
       renderSelectedIngredientsList();
       renderPickerChips();

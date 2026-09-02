@@ -111,7 +111,7 @@
   <!-- 主要內容區 -->
   <main class="max-w-7xl mx-auto px-2.5 sm:px-6 pt-2.5 flex-1 w-full">
 
-    <!-- 1. 按日視圖 (無小熊純淨卡片版) -->
+    <!-- 1. 按日視圖 -->
     <section id="viewDaily" class="space-y-3">
       <div class="flex items-center justify-between bg-white px-3 py-2 rounded-2xl border border-slate-200 shadow-xs flex-wrap gap-1.5">
         <div class="flex items-center gap-1.5 flex-wrap">
@@ -130,7 +130,7 @@
       <div id="dailyCardsContainer" class="space-y-2.5"></div>
     </section>
 
-    <!-- 2. 按月視圖 (正確餐次間隔 + 精準渲染) -->
+    <!-- 2. 按月視圖 (乾淨白底 + 餐次留白區隔) -->
     <section id="viewCalendar" class="hidden space-y-3">
       <div class="bg-white p-2.5 sm:p-5 rounded-3xl border border-slate-100 shadow-xs overflow-x-auto custom-scrollbar">
         <div class="flex items-center justify-between mb-3 min-w-[320px]">
@@ -247,7 +247,7 @@
 
   </main>
 
-  <!-- 食材分類修改/刪除彈窗 -->
+  <!-- 食材修改/刪除彈窗 -->
   <div id="foodEditModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-4 space-y-3 shadow-2xl border border-slate-100">
       <div class="flex items-center justify-between border-b pb-2">
@@ -678,7 +678,7 @@
       return `${ampm} ${hour}:${m}`;
     }
 
-    /* 按日視圖渲染（已徹底移除小熊頭像） */
+    /* 按日視圖渲染（無小熊圖示純淨卡片） */
     function renderDailyCards() {
       const container = document.getElementById('dailyCardsContainer');
       const targetDate = document.getElementById('dailyDateFilter').value;
@@ -795,7 +795,7 @@
       }
     }
 
-    /* 按月日曆渲染：保證所有食材完整呈現，依時間分組隔開 */
+    /* 按月日曆渲染：最穩健渲染，同餐緊貼、不同餐有留白空行 */
     function renderCalendar() {
       const year = calendarCurrentDate.getFullYear();
       const month = calendarCurrentDate.getMonth();
@@ -822,14 +822,17 @@
         if (dayMeals.length > 0) {
           mealsGroupsHtml = dayMeals.map(meal => {
             const items = [];
-            if (meal.comboName) {
-              items.push({ name: meal.comboName, type: 'combo' });
-            } else {
-              (meal.ingredients || []).forEach(ing => {
+            // 若為食物組合則直接放組合名；若非組合則列出食材
+            if (meal.comboName && meal.comboName.trim()) {
+              items.push({ name: meal.comboName.trim(), type: 'combo' });
+            } else if (meal.ingredients && meal.ingredients.length > 0) {
+              meal.ingredients.forEach(ing => {
                 const ingName = typeof ing === 'string' ? ing : (ing ? ing.name : '');
-                if (ingName) items.push({ name: ingName, type: 'food' });
+                if (ingName && ingName.trim()) items.push({ name: ingName.trim(), type: 'food' });
               });
             }
+
+            if (items.length === 0) return '';
 
             const chipsHtml = items.map(item => {
               if (item.type === 'combo') {
@@ -847,8 +850,8 @@
               }
             }).join('');
 
-            // 每一個不同時間點的餐次獨立一組，彼此間隔 mb-1.5
-            return `<div class="space-y-0.5 w-full mb-1.5 last:mb-0">${chipsHtml}</div>`;
+            // 同餐緊貼，不同餐以 mb-2 隔開
+            return `<div class="space-y-0.5 w-full mb-2 last:mb-0">${chipsHtml}</div>`;
           }).join('');
         } else {
           mealsGroupsHtml = `<div class="text-slate-300 text-xs font-black leading-none mt-1">·</div>`;

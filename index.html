@@ -45,7 +45,7 @@
     .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 
-    /* 各食材分類莫蘭迪柔和配色 */
+    /* 莫蘭迪柔和色系膠囊 */
     .cat-grain { background-color: #fef9c3; color: #713f12; border-color: #fef08a; }
     .cat-veg   { background-color: #dcfce7; color: #14532d; border-color: #bbf7d0; }
     .cat-fruit { background-color: #ffe4e6; color: #881337; border-color: #fecdd3; }
@@ -111,7 +111,7 @@
   <!-- 主要內容區 -->
   <main class="max-w-7xl mx-auto px-2.5 sm:px-6 pt-2.5 flex-1 w-full">
 
-    <!-- 1. 按日視圖 -->
+    <!-- 1. 按日視圖 (無小熊純淨卡片版) -->
     <section id="viewDaily" class="space-y-3">
       <div class="flex items-center justify-between bg-white px-3 py-2 rounded-2xl border border-slate-200 shadow-xs flex-wrap gap-1.5">
         <div class="flex items-center gap-1.5 flex-wrap">
@@ -130,7 +130,7 @@
       <div id="dailyCardsContainer" class="space-y-2.5"></div>
     </section>
 
-    <!-- 2. 按月視圖 (精準還原截圖美感版) -->
+    <!-- 2. 按月視圖 (正確餐次間隔 + 精準渲染) -->
     <section id="viewCalendar" class="hidden space-y-3">
       <div class="bg-white p-2.5 sm:p-5 rounded-3xl border border-slate-100 shadow-xs overflow-x-auto custom-scrollbar">
         <div class="flex items-center justify-between mb-3 min-w-[320px]">
@@ -678,6 +678,7 @@
       return `${ampm} ${hour}:${m}`;
     }
 
+    /* 按日視圖渲染（已徹底移除小熊頭像） */
     function renderDailyCards() {
       const container = document.getElementById('dailyCardsContainer');
       const targetDate = document.getElementById('dailyDateFilter').value;
@@ -720,13 +721,13 @@
             const fObj = appData.foods.find(f => f.name === ingName) || {};
             return `<span class="text-xs">${fObj.icon || '🥦'}</span>`;
           }).join('');
-          iconHtml = `<div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center gap-0.5 shadow-2xs">${miniIcons}</div>`;
+          iconHtml = `<div class="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center gap-0.5 shadow-2xs">${miniIcons}</div>`;
         } else {
           const singleIng = (meal.ingredients || [])[0];
           const ingName = typeof singleIng === 'string' ? singleIng : (singleIng ? singleIng.name : '食材');
           mainName = ingName;
           const fObj = appData.foods.find(f => f.name === ingName) || {};
-          iconHtml = `<div class="w-10 h-10 rounded-xl bg-amber-50/70 border border-amber-100/50 flex items-center justify-center text-xl shadow-2xs">${fObj.icon || '🥦'}</div>`;
+          iconHtml = `<div class="w-10 h-10 rounded-2xl bg-amber-50/70 border border-amber-100/50 flex items-center justify-center text-xl shadow-2xs">${fObj.icon || '🥦'}</div>`;
         }
 
         let textureShort = '';
@@ -738,7 +739,7 @@
         }
 
         html += `
-          <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-100 shadow-sm space-y-3">
+          <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-100 shadow-sm space-y-2.5">
             <div class="flex items-center justify-between">
               <span class="text-base sm:text-lg font-black text-slate-900 tracking-tight">${timeDisplay}</span>
               <div class="flex items-center gap-1">
@@ -747,21 +748,15 @@
               </div>
             </div>
 
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                ${iconHtml}
-                <div>
-                  <div class="flex items-center gap-1.5">
-                    <span class="font-extrabold text-base sm:text-lg text-slate-800">${escapeHtml(mainName)}</span>
-                    ${hasNewIngredient ? '<span class="bg-amber-300 text-slate-900 font-black text-[11px] px-1.5 py-0.2 rounded-md leading-tight">新</span>' : ''}
-                  </div>
-                  ${textureShort ? `<div class="text-xs font-bold text-slate-400 mt-0.5">${escapeHtml(textureShort)}</div>` : ''}
-                  ${isCombo ? `<div class="text-[10px] text-slate-400 font-medium">包含: ${(meal.ingredients || []).map(i => typeof i === 'string' ? i : i.name).join('、')}</div>` : ''}
+            <div class="flex items-center gap-3">
+              ${iconHtml}
+              <div>
+                <div class="flex items-center gap-1.5">
+                  <span class="font-extrabold text-base sm:text-lg text-slate-800">${escapeHtml(mainName)}</span>
+                  ${hasNewIngredient ? '<span class="bg-amber-300 text-slate-900 font-black text-[11px] px-1.5 py-0.2 rounded-md leading-tight">新</span>' : ''}
                 </div>
-              </div>
-
-              <div class="w-9 h-9 rounded-full bg-sky-50 border border-sky-100 flex items-center justify-center text-slate-500 text-lg shadow-2xs">
-                🐻
+                ${textureShort ? `<div class="text-xs font-bold text-slate-400 mt-0.5">${escapeHtml(textureShort)}</div>` : ''}
+                ${isCombo ? `<div class="text-[10px] text-slate-400 font-medium">包含: ${(meal.ingredients || []).map(i => typeof i === 'string' ? i : i.name).join('、')}</div>` : ''}
               </div>
             </div>
           </div>`;
@@ -800,7 +795,7 @@
       }
     }
 
-    /* 按月日曆渲染：依不同餐次「間隔分組」，同餐緊貼、不同餐留白 (精準還原截圖美感) */
+    /* 按月日曆渲染：保證所有食材完整呈現，依時間分組隔開 */
     function renderCalendar() {
       const year = calendarCurrentDate.getFullYear();
       const month = calendarCurrentDate.getMonth();
@@ -825,21 +820,20 @@
         let mealsGroupsHtml = '';
 
         if (dayMeals.length > 0) {
-          // 依不同餐次（時間）分組渲染，同餐緊貼、不同餐有留白間距
           mealsGroupsHtml = dayMeals.map(meal => {
-            const itemsInThisMeal = [];
+            const items = [];
             if (meal.comboName) {
-              itemsInThisMeal.push({ name: meal.comboName, type: 'combo' });
+              items.push({ name: meal.comboName, type: 'combo' });
             } else {
-              (meal.ingredients || []).forEach(i => {
-                const ingName = typeof i === 'string' ? i : i.name;
-                itemsInThisMeal.push({ name: ingName, type: 'food' });
+              (meal.ingredients || []).forEach(ing => {
+                const ingName = typeof ing === 'string' ? ing : (ing ? ing.name : '');
+                if (ingName) items.push({ name: ingName, type: 'food' });
               });
             }
 
-            const mealChipsHtml = itemsInThisMeal.map(item => {
+            const chipsHtml = items.map(item => {
               if (item.type === 'combo') {
-                return `<div class="w-full bg-slate-100/95 text-slate-800 font-bold px-0.5 py-0.5 rounded-md text-[8px] sm:text-[9.5px] text-center border border-slate-200/80 shadow-2xs whitespace-nowrap tracking-tighter">${escapeHtml(item.name)}</div>`;
+                return `<div class="w-full bg-slate-100 text-slate-800 font-bold px-0.5 py-0.5 rounded text-[8px] sm:text-[9.5px] text-center border border-slate-200 truncate">${escapeHtml(item.name)}</div>`;
               } else {
                 const foodObj = appData.foods.find(f => f.name === item.name) || {};
                 const cat = foodObj.category || '海藻其他';
@@ -849,15 +843,14 @@
                 else if (cat === '水果') catClass = 'cat-fruit';
                 else if (cat === '蛋豆魚肉乳') catClass = 'cat-meat';
 
-                return `<div class="w-full ${catClass} px-0.5 py-0.5 rounded-md text-[8px] sm:text-[9.5px] text-center border shadow-2xs whitespace-nowrap tracking-tighter">${escapeHtml(item.name)}</div>`;
+                return `<div class="w-full ${catClass} px-0.5 py-0.5 rounded text-[8px] sm:text-[9.5px] text-center border truncate">${escapeHtml(item.name)}</div>`;
               }
             }).join('');
 
-            // 每一個餐次為一個微群組，彼此之間以 margin-bottom 區隔
-            return `<div class="space-y-0.5 w-full mb-1.5 last:mb-0">${mealChipsHtml}</div>`;
+            // 每一個不同時間點的餐次獨立一組，彼此間隔 mb-1.5
+            return `<div class="space-y-0.5 w-full mb-1.5 last:mb-0">${chipsHtml}</div>`;
           }).join('');
         } else {
-          // 當天沒吃副食品時，顯示極簡小圓點
           mealsGroupsHtml = `<div class="text-slate-300 text-xs font-black leading-none mt-1">·</div>`;
         }
 

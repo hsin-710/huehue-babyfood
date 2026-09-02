@@ -58,10 +58,18 @@
     .calendar-meal-group {
       background-color: #ffffff;
       border: 1px solid #e2e8f0;
-      border-radius: 8px;
+      border-radius: 6px;
       padding: 2px;
       box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
       width: 100%;
+    }
+
+    /* 月曆食物標籤強制換行與完整顯示 */
+    .cal-chip {
+      word-break: break-all;
+      overflow-wrap: break-word;
+      white-space: normal !important;
+      line-height: 1.15;
     }
   </style>
 </head>
@@ -142,16 +150,16 @@
 
     <!-- 2. 按月視圖 -->
     <section id="viewCalendar" class="hidden space-y-3">
-      <div class="bg-white p-2.5 sm:p-5 rounded-3xl border border-slate-200 shadow-xs overflow-x-auto custom-scrollbar">
-        <div class="flex items-center justify-between mb-3 min-w-[320px]">
+      <div class="bg-white p-2 sm:p-5 rounded-3xl border border-slate-200 shadow-xs">
+        <div class="flex items-center justify-between mb-3">
           <button onclick="changeMonth(-1)" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 text-xs font-bold transition-all"><i class="fa-solid fa-chevron-left"></i> 上個月</button>
           <h2 id="calendarMonthTitle" class="text-base sm:text-xl font-extrabold text-slate-800">2026 年 8 月</h2>
           <button onclick="changeMonth(1)" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 text-xs font-bold transition-all">下個月 <i class="fa-solid fa-chevron-right"></i></button>
         </div>
-        <div class="grid grid-cols-7 gap-1 text-center font-bold text-slate-400 text-xs py-1.5 border-b border-slate-100 min-w-[320px]">
-          <div>週日</div><div>週一</div><div>週二</div><div>週三</div><div>週四</div><div>週五</div><div>週六</div>
+        <div class="grid grid-cols-7 gap-1 text-center font-bold text-slate-400 text-[11px] sm:text-xs py-1.5 border-b border-slate-100">
+          <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
         </div>
-        <div id="calendarGrid" class="grid grid-cols-7 gap-1 mt-2 min-w-[320px] items-start"></div>
+        <div id="calendarGrid" class="grid grid-cols-7 gap-1 mt-2 items-start"></div>
       </div>
     </section>
 
@@ -775,11 +783,11 @@
                 <div class="w-11 h-11 rounded-2xl bg-amber-100/70 border border-amber-200/50 flex items-center justify-center text-xl shadow-2xs">🍱</div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-1.5">
-                    <span class="font-black text-base text-slate-800">${escapeHtml(item.name)}</span>
+                    <span class="font-black text-base text-slate-800 break-words">${escapeHtml(item.name)}</span>
                     ${hasNew ? '<span class="bg-amber-400 text-slate-900 font-black text-[10px] px-1.5 py-0.2 rounded-md leading-tight">新</span>' : ''}
                   </div>
                   ${meal.texture ? `<div class="text-[11px] font-bold text-slate-400 mt-0.5">${escapeHtml(meal.texture.split('/')[0].trim())}</div>` : ''}
-                  <div class="text-[11px] text-slate-500 font-medium truncate mt-0.5">包含: ${(item.ingredients || []).join('、')}</div>
+                  <div class="text-[11px] text-slate-500 font-medium break-words mt-0.5">包含: ${(item.ingredients || []).join('、')}</div>
                 </div>
               </div>`;
           } else {
@@ -796,8 +804,8 @@
               <div class="flex items-start gap-3 bg-slate-50/80 p-3 rounded-2xl border border-slate-100/90 shadow-2xs">
                 <div class="w-11 h-11 rounded-2xl bg-white border border-slate-200/80 flex items-center justify-center text-2xl shadow-2xs">${foodObj.icon || '🥦'}</div>
                 <div class="flex-1 min-w-0">
-                  <div class="flex items-center gap-1.5">
-                    <span class="font-black text-base text-slate-800">${escapeHtml(item.name)}</span>
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="font-black text-base text-slate-800 break-words">${escapeHtml(item.name)}</span>
                     ${isFirst ? '<span class="bg-amber-400 text-slate-900 font-black text-[10px] px-1.5 py-0.2 rounded-md leading-tight">新</span>' : ''}
                     ${statusTag}
                   </div>
@@ -858,7 +866,7 @@
       }
     }
 
-    /* 按月日曆渲染：文字自然跨行、完整呈現不截斷 */
+    /* 按月日曆渲染：文字多行完整顯示 + 強制折行不截斷 */
     function renderCalendar() {
       const year = calendarCurrentDate.getFullYear();
       const month = calendarCurrentDate.getMonth();
@@ -873,7 +881,7 @@
       const todayStr = getLocalDateString();
 
       for (let i = 0; i < firstDay; i++) {
-        grid.innerHTML += `<div class="min-h-[60px]"></div>`;
+        grid.innerHTML += `<div class="min-h-[50px]"></div>`;
       }
 
       for (let d = 1; d <= daysInMonth; d++) {
@@ -907,7 +915,7 @@
 
             const chipsHtml = items.map(item => {
               if (item.type === 'combo') {
-                return `<div class="w-full cat-combo px-1 py-0.5 rounded text-[8px] sm:text-[9.5px] text-center border shadow-2xs break-words leading-tight">${escapeHtml(item.name)}</div>`;
+                return `<div class="w-full cat-combo px-0.5 py-0.5 rounded text-[8px] sm:text-[9.5px] text-center border shadow-2xs cal-chip">${escapeHtml(item.name)}</div>`;
               } else {
                 const foodObj = appData.foods.find(f => f.name === item.name) || {};
                 const cat = foodObj.category || '海藻其他';
@@ -920,9 +928,9 @@
                 else if (cat === '蛋豆魚肉乳') catClass = 'cat-meat';
 
                 return `
-                  <div class="w-full ${catClass} px-1 py-0.5 rounded text-[8px] sm:text-[9px] text-center border shadow-2xs break-words leading-tight flex items-center justify-center flex-wrap gap-0.5">
+                  <div class="w-full ${catClass} px-0.5 py-0.5 rounded text-[8px] sm:text-[9px] text-center border shadow-2xs cal-chip flex items-center justify-center flex-wrap">
                     <span>${escapeHtml(item.name)}</span>
-                    ${isFirst ? '<span class="bg-amber-400 text-slate-900 rounded px-0.5 text-[7px] font-black shrink-0">新</span>' : ''}
+                    ${isFirst ? '<span class="bg-amber-400 text-slate-900 rounded px-0.5 text-[7px] font-black shrink-0 ml-0.5">新</span>' : ''}
                   </div>`;
               }
             }).join('');
@@ -938,8 +946,8 @@
 
         const isToday = dateStr === todayStr;
         grid.innerHTML += `
-          <div onclick="jumpToDateFromCalendar('${dateStr}')" class="min-h-[65px] h-auto flex flex-col items-center justify-start cursor-pointer transition-all hover:bg-slate-50 rounded-xl py-0.5 px-0.5">
-            <span class="text-xs sm:text-sm font-black mb-1 flex items-center justify-center ${isToday ? 'bg-[#73989c] text-white rounded-md w-6 h-6 sm:w-7 sm:h-7 shadow-xs' : 'text-slate-900'}">${d}</span>
+          <div onclick="jumpToDateFromCalendar('${dateStr}')" class="min-h-[55px] h-auto flex flex-col items-center justify-start cursor-pointer transition-all hover:bg-slate-50 rounded-lg p-0.5">
+            <span class="text-xs sm:text-sm font-black mb-1 flex items-center justify-center ${isToday ? 'bg-[#73989c] text-white rounded-md w-5 h-5 sm:w-6 sm:h-6 shadow-xs text-[11px]' : 'text-slate-900'}">${d}</span>
             <div class="w-full flex flex-col items-center">${mealsGroupsHtml}</div>
           </div>`;
       }
@@ -1103,7 +1111,7 @@
             <div class="flex items-center gap-1.5">
               <span class="text-lg">${food.icon || '🥦'}</span>
               <div>
-                <div class="font-bold text-xs text-slate-800">${escapeHtml(food.name)}</div>
+                <div class="font-bold text-xs text-slate-800 break-words">${escapeHtml(food.name)}</div>
                 <div class="text-[9px] ${count > 0 ? 'text-emerald-700 font-extrabold' : 'text-slate-400'}">${count > 0 ? `已吃 ${count} 次` : '未解鎖'}</div>
               </div>
             </div>
@@ -1442,7 +1450,7 @@
       container.innerHTML = selectedMealItems.map((item, index) => {
         if (item.type === 'combo') {
           return `
-            <div class="bg-amber-50/90 border border-amber-200 rounded-xl p-2 flex items-center justify-between text-xs shadow-2xs">
+            <div class="bg-amber-50/80 border border-amber-200 rounded-lg p-2 flex items-center justify-between text-xs shadow-2xs">
               <div>
                 <span class="font-extrabold text-amber-950">🍱 ${escapeHtml(item.name)}</span>
                 <span class="text-[10px] text-amber-700 ml-1">(${(item.ingredients || []).join('、')})</span>
@@ -1452,9 +1460,9 @@
         } else {
           const currentStatus = appData.foodStatus[item.name] || 'normal';
           return `
-            <div class="bg-white border border-slate-200 rounded-xl p-2 space-y-1 text-xs shadow-2xs">
+            <div class="bg-white border border-slate-200 rounded-lg p-1.5 space-y-1 text-xs shadow-2xs">
               <div class="flex items-center justify-between">
-                <span class="font-bold text-xs text-slate-800">${escapeHtml(item.name)}</span>
+                <span class="font-bold text-xs text-slate-800 break-words">${escapeHtml(item.name)}</span>
                 <button type="button" onclick="removeSelectedItem(${index})" class="text-slate-400 hover:text-rose-600 font-bold px-1">✕</button>
               </div>
               <div class="flex items-center gap-0.5 pt-0.5 border-t border-slate-100 text-[10px]">

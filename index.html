@@ -113,7 +113,7 @@
   <!-- 主要內容區 -->
   <main class="max-w-7xl mx-auto px-2.5 sm:px-6 pt-2.5 flex-1 w-full">
 
-    <!-- 1. 按日視圖 (卡片式時間／餐別清晰分開，且完整顯示所有食材) -->
+    <!-- 1. 按日視圖 -->
     <section id="viewDaily" class="space-y-3">
       <div class="flex items-center justify-between bg-white px-3 py-2 rounded-2xl border border-slate-200 shadow-xs flex-wrap gap-1.5">
         <div class="flex items-center gap-1.5 flex-wrap">
@@ -349,6 +349,7 @@
           <div id="pickerChipsContainer" class="flex flex-wrap gap-1 p-2 bg-slate-50 rounded-xl border border-slate-200 max-h-32 overflow-y-auto custom-scrollbar"></div>
         </div>
 
+        <!-- 已選擇食材（每項帶有獨立直接刪除按鈕） -->
         <div class="bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100 space-y-1.5">
           <div class="text-[11px] font-bold text-emerald-900 flex items-center justify-between">
             <span id="selectedIngredientsSummaryLabel">已選擇食材：</span>
@@ -411,10 +412,11 @@
       { name: '菠菜', category: '蔬菜菌菇', icon: '🥬' },
       { name: '小白菜', category: '蔬菜菌菇', icon: '🥬' },
       { name: '青江菜', category: '蔬菜菌菇', icon: '🥬' },
+      { name: '芥藍菜', category: '蔬菜菌菇', icon: '🥬' },
+      { name: '空心菜', category: '蔬菜菌菇', icon: '🥬' },
       { name: '長豆(豇豆)', category: '蔬菜菌菇', icon: '🥬' },
       { name: '黑木耳', category: '蔬菜菌菇', icon: '🍄' },
       { name: '白木耳', category: '蔬菜菌菇', icon: '⚪' },
-      { name: '空心菜', category: '蔬菜菌菇', icon: '🥬' },
       { name: '絲瓜', category: '蔬菜菌菇', icon: '🥒' },
       { name: '小黃瓜', category: '蔬菜菌菇', icon: '🥒' },
       { name: '冬瓜', category: '蔬菜菌菇', icon: '🍈' },
@@ -455,7 +457,7 @@
     ];
 
     const DEFAULT_COMBOS = [
-      { id: 'combo_pork_porridge', name: '豬肉粥', ingredients: ['白米', '豬肉'] }
+      { id: 'combo_pork_porridge', name: '豬肉粥', ingredients: ['白米', '豬絞肉'] }
     ];
 
     let appData = { syncCode: 'huehue', meals: [], foods: DEFAULT_FOOD_DATABASE, combos: DEFAULT_COMBOS, foodStatus: {} };
@@ -678,7 +680,49 @@
       return `${ampm} ${hour}:${m}`;
     }
 
-    /* 按日視圖：清晰區分各餐別卡片，且完整列出所有食材與熊頭喜好度 */
+    /* 生成單項食材的 HTML 結構 */
+    function renderIngredientItemHtml(item, mealDate, earliestMap, textureText = '') {
+      const ingName = typeof item === 'string' ? item : item.name;
+      const isFirstEverOccur = earliestMap[ingName] === mealDate;
+      const foodObj = appData.foods.find(f => f.name === ingName) || {};
+      const status = appData.foodStatus[ingName] || 'normal';
+
+      let bearBadgeHtml = '';
+      if (status === 'like') {
+        bearBadgeHtml = `<div class="w-8 h-8 rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center text-sm shadow-2xs" title="喜愛">🥰</div>`;
+      } else if (status === 'dislike') {
+        bearBadgeHtml = `<div class="w-8 h-8 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-sm shadow-2xs" title="討厭">🤢</div>`;
+      } else if (status === 'allergy') {
+        bearBadgeHtml = `<div class="px-1.5 py-0.5 rounded-md bg-rose-600 text-black text-[10px] font-black border border-rose-800 shadow-2xs" title="過敏反應">❌過敏</div>`;
+      }
+
+      let textureShort = '';
+      if (textureText) {
+        if (textureText.includes('泥')) textureShort = '泥';
+        else if (textureText.includes('粥')) textureShort = '粥';
+        else if (textureText.includes('軟飯')) textureShort = '軟飯';
+        else textureShort = textureText.split('/')[0].trim();
+      }
+
+      return `
+        <div class="flex items-center justify-between bg-white p-2.5 rounded-2xl border border-slate-100 shadow-2xs">
+          <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-center text-xl shadow-2xs">
+              ${foodObj.icon || '🥦'}
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-extrabold text-base text-slate-800">${escapeHtml(ingName)}</span>
+                ${isFirstEverOccur ? '<span class="bg-amber-300 text-slate-900 font-black text-[10px] px-1.5 py-0.2 rounded-md leading-tight shadow-2xs">新</span>' : ''}
+              </div>
+              ${textureShort ? `<div class="text-[11px] font-bold text-slate-400 mt-0.5">${escapeHtml(textureShort)}</div>` : ''}
+            </div>
+          </div>
+          <div>${bearBadgeHtml}</div>
+        </div>`;
+    }
+
+    /* 按日視圖：食物組合直接包覆食材，非組合食材分開呈現 */
     function renderDailyCards() {
       const container = document.getElementById('dailyCardsContainer');
       const targetDate = document.getElementById('dailyDateFilter').value;
@@ -703,79 +747,49 @@
       let html = '';
       dayMeals.forEach(meal => {
         const timeDisplay = formatMealDisplayTime(meal.time);
-        const isCombo = !!meal.comboName;
+        const comboObj = meal.comboName ? (appData.combos || []).find(c => c.name === meal.comboName) : null;
+        const comboIngNames = comboObj ? new Set(comboObj.ingredients) : new Set();
 
-        // 整理所有食材項目
-        const ingredients = meal.ingredients || [];
+        const allIngredients = meal.ingredients || [];
+        const comboIngredients = [];
+        const singleIngredients = [];
 
-        // 組合頭部標記（若為食物組合）
-        let comboHeaderHtml = '';
-        if (isCombo) {
-          comboHeaderHtml = `
-            <div class="bg-amber-50/80 border border-amber-200/70 text-amber-900 px-3 py-1.5 rounded-2xl flex items-center justify-between">
-              <span class="font-black text-sm flex items-center gap-1.5"><span>🍱</span> ${escapeHtml(meal.comboName)}</span>
-              <span class="text-[10px] text-amber-700/80 font-bold">食物組合</span>
+        if (meal.comboName) {
+          allIngredients.forEach(item => {
+            const ingName = typeof item === 'string' ? item : item.name;
+            if (comboIngNames.has(ingName)) {
+              comboIngredients.push(item);
+            } else {
+              singleIngredients.push(item);
+            }
+          });
+        } else {
+          singleIngredients.push(...allIngredients);
+        }
+
+        // 1. 食物組合區塊（食材直接呈現在組合卡片內部）
+        let comboBlockHtml = '';
+        if (meal.comboName) {
+          const comboInnerItemsHtml = comboIngredients.map(item => renderIngredientItemHtml(item, meal.date, earliestMap, meal.texture)).join('');
+          comboBlockHtml = `
+            <div class="bg-amber-50/50 border border-amber-200/80 p-3 rounded-2xl space-y-2">
+              <div class="flex items-center justify-between pb-1 border-b border-amber-200/50">
+                <span class="font-black text-sm text-amber-900 flex items-center gap-1.5">
+                  <span>🍱</span> ${escapeHtml(meal.comboName)}
+                </span>
+                <span class="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-md">食物組合</span>
+              </div>
+              <div class="space-y-1.5">
+                ${comboInnerItemsHtml}
+              </div>
             </div>`;
         }
 
-        // 完整列出該餐內「每一種」食材的條目
-        let itemsHtml = ingredients.map(item => {
-          const ingName = typeof item === 'string' ? item : item.name;
-          const isFirstEverOccur = earliestMap[ingName] === meal.date;
-          const foodObj = appData.foods.find(f => f.name === ingName) || {};
-          const status = appData.foodStatus[ingName] || 'normal';
-
-          // 熊頭喜好度邏輯：普通不呈現，喜愛與討厭才呈現可愛熊頭
-          let bearBadgeHtml = '';
-          if (status === 'like') {
-            bearBadgeHtml = `
-              <div class="w-8 h-8 rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center text-sm shadow-2xs" title="喜愛">
-                🥰
-              </div>`;
-          } else if (status === 'dislike') {
-            bearBadgeHtml = `
-              <div class="w-8 h-8 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-sm shadow-2xs" title="討厭">
-                🤢
-              </div>`;
-          } else if (status === 'allergy') {
-            bearBadgeHtml = `
-              <div class="px-1.5 py-0.5 rounded-md bg-rose-600 text-black text-[10px] font-black border border-rose-800 shadow-2xs" title="過敏反應">
-                ❌過敏
-              </div>`;
-          }
-
-          // 質地標籤 (如：泥、粥)
-          let textureShort = '';
-          if (meal.texture) {
-            if (meal.texture.includes('泥')) textureShort = '泥';
-            else if (meal.texture.includes('粥')) textureShort = '粥';
-            else if (meal.texture.includes('軟飯')) textureShort = '軟飯';
-            else textureShort = meal.texture.split('/')[0].trim();
-          }
-
-          return `
-            <div class="flex items-center justify-between bg-slate-50/70 p-2.5 rounded-2xl border border-slate-100">
-              <div class="flex items-center gap-2.5">
-                <div class="w-10 h-10 rounded-xl bg-white border border-slate-200/70 flex items-center justify-center text-xl shadow-2xs">
-                  ${foodObj.icon || '🥦'}
-                </div>
-                <div>
-                  <div class="flex items-center gap-1.5">
-                    <span class="font-extrabold text-base text-slate-800">${escapeHtml(ingName)}</span>
-                    ${isFirstEverOccur ? '<span class="bg-amber-300 text-slate-900 font-black text-[10px] px-1.5 py-0.2 rounded-md leading-tight shadow-2xs">新</span>' : ''}
-                  </div>
-                  ${textureShort ? `<div class="text-[11px] font-bold text-slate-400 mt-0.5">${escapeHtml(textureShort)}</div>` : ''}
-                </div>
-              </div>
-
-              <!-- 右側喜好度 (普通不顯示，喜愛/討厭/過敏才顯示) -->
-              <div>${bearBadgeHtml}</div>
-            </div>`;
-        }).join('');
+        // 2. 單獨食材區塊
+        const singleItemsHtml = singleIngredients.map(item => renderIngredientItemHtml(item, meal.date, earliestMap, meal.texture)).join('');
 
         html += `
           <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-100 shadow-sm space-y-3">
-            <!-- 頂部時間、餐別標籤與操作按鈕 (清晰區分餐別) -->
             <div class="flex items-center justify-between border-b border-slate-100/80 pb-2">
               <div class="flex items-center gap-2">
                 <span class="text-base sm:text-lg font-black text-slate-900 tracking-tight">${timeDisplay}</span>
@@ -788,15 +802,11 @@
               </div>
             </div>
 
-            <!-- 若為食物組合先呈現組合標頭 -->
-            ${comboHeaderHtml}
-
-            <!-- 該餐的所有食材列表 (全部呈現，不遺漏) -->
             <div class="space-y-2">
-              ${itemsHtml}
+              ${comboBlockHtml}
+              ${singleItemsHtml}
             </div>
 
-            <!-- 備註說明 -->
             ${meal.notes ? `<div class="text-[11px] text-slate-500 bg-slate-50 p-2 rounded-xl border border-slate-100"><b>備註：</b>${escapeHtml(meal.notes)}</div>` : ''}
           </div>`;
       });
@@ -834,7 +844,6 @@
       }
     }
 
-    /* 按月日曆渲染 */
     function renderCalendar() {
       const year = calendarCurrentDate.getFullYear();
       const month = calendarCurrentDate.getMonth();
@@ -1338,9 +1347,20 @@
       } else {
         selectedMealIngredients.push({ name: name });
       }
+      currentChosenComboName = '';
+      document.getElementById('mealComboName').value = '';
       document.getElementById('pickerSearchInput').value = '';
       renderSelectedIngredientsList();
       renderPickerChips();
+    }
+
+    /* 直接從已選清單中移除指定食材 */
+    function removeSelectedIngredient(index) {
+      if (index >= 0 && index < selectedMealIngredients.length) {
+        selectedMealIngredients.splice(index, 1);
+        renderSelectedIngredientsList();
+        renderPickerChips();
+      }
     }
 
     function renderSelectedIngredientsList() {
@@ -1360,6 +1380,10 @@
           <div class="bg-white border border-slate-200 rounded-lg p-1.5 space-y-1 text-xs shadow-2xs">
             <div class="flex items-center justify-between">
               <span class="font-bold text-xs text-slate-800">${escapeHtml(item.name)}</span>
+              <!-- 直接刪除按鈕 -->
+              <button type="button" onclick="removeSelectedIngredient(${index})" class="text-slate-400 hover:text-rose-600 px-1.5 py-0.5 rounded text-xs font-bold transition-all" title="從此餐移除">
+                <i class="fa-solid fa-xmark"></i> 移除
+              </button>
             </div>
             <div class="flex items-center gap-0.5 pt-0.5 border-t border-slate-100 text-[10px]">
               <span class="text-slate-500 font-medium">試敏:</span>

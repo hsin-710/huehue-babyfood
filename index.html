@@ -53,6 +53,16 @@
     .cat-combo { background-color: #f1f5f9; color: #1e293b; border-color: #cbd5e1; font-weight: 800; }
     .cat-other { background-color: #e0f2fe; color: #0c4a6e; border-color: #bae6fd; }
     .cat-allergy { background-color: #f87171; color: #ffffff; border-color: #dc2626; font-weight: 900; }
+
+    /* 按月單餐外框 (精準還原截圖的同餐白底圓角框) */
+    .calendar-meal-group {
+      background-color: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 2px;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+      width: 100%;
+    }
   </style>
 </head>
 <body class="text-slate-800 antialiased min-h-screen flex flex-col pb-8">
@@ -111,7 +121,7 @@
   <!-- 主要內容區 -->
   <main class="max-w-7xl mx-auto px-2.5 sm:px-6 pt-2.5 flex-1 w-full">
 
-    <!-- 1. 按日視圖 -->
+    <!-- 1. 按日視圖 (同一餐以卡片框收納) -->
     <section id="viewDaily" class="space-y-3">
       <div class="flex items-center justify-between bg-white px-3 py-2 rounded-2xl border border-slate-200 shadow-xs flex-wrap gap-1.5">
         <div class="flex items-center gap-1.5 flex-wrap">
@@ -130,7 +140,7 @@
       <div id="dailyCardsContainer" class="space-y-4"></div>
     </section>
 
-    <!-- 2. 按月視圖 -->
+    <!-- 2. 按月視圖 (同一餐加上獨立外框呈現) -->
     <section id="viewCalendar" class="hidden space-y-3">
       <div class="bg-white p-2.5 sm:p-5 rounded-3xl border border-slate-200 shadow-xs overflow-x-auto custom-scrollbar">
         <div class="flex items-center justify-between mb-3 min-w-[320px]">
@@ -692,7 +702,7 @@
       return `${ampm} ${hour}:${m}`;
     }
 
-    /* 按日視圖渲染：同一餐用大圓角框框呈現，不同餐清楚隔開 */
+    /* 按日視圖渲染：每一餐用大外框獨立收納 */
     function renderDailyCards() {
       const container = document.getElementById('dailyCardsContainer');
       const targetDate = document.getElementById('dailyDateFilter').value;
@@ -718,12 +728,10 @@
       dayMeals.forEach(meal => {
         const timeDisplay = formatMealDisplayTime(meal.time);
 
-        // 智慧解析這餐的所有單元：將屬於組合的跟獨立食材乾淨分開
         let renderItems = [];
         if (meal.items && meal.items.length > 0) {
           renderItems = meal.items;
         } else if (meal.comboName) {
-          // 向下相容歷史資料：如果包含組合，找出這個組合本來的配方
           const matchedCombo = (appData.combos || []).find(c => c.name === meal.comboName);
           const comboOriginalIngs = matchedCombo ? matchedCombo.ingredients : [];
           
@@ -739,26 +747,22 @@
             }
           });
 
-          // 組合本體
           renderItems.push({
             type: 'combo',
             name: meal.comboName,
             ingredients: comboIngs.length > 0 ? comboIngs : (meal.ingredients || []).map(i => typeof i === 'string' ? i : i.name)
           });
 
-          // 額外吃到的食材拆為獨立卡
           standaloneIngs.forEach(extraName => {
             renderItems.push({ type: 'food', name: extraName });
           });
         } else {
-          // 純食材列表
           (meal.ingredients || []).forEach(i => {
             const ingName = typeof i === 'string' ? i : i.name;
             renderItems.push({ type: 'food', name: ingName });
           });
         }
 
-        // 生成這餐框框內的每一筆小卡
         const cardsHtml = renderItems.map(item => {
           if (item.type === 'combo') {
             let hasNew = false;
@@ -803,7 +807,6 @@
           }
         }).join('');
 
-        // 同一餐使用獨立大白框包覆，與其他餐徹底區隔
         html += `
           <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/70 shadow-sm space-y-3">
             <div class="flex items-center justify-between border-b border-slate-100 pb-2">
@@ -855,7 +858,7 @@
       }
     }
 
-    /* 按月日曆渲染：新食材標註【新】+ 同餐緊貼不同餐空行 */
+    /* 按月日曆渲染：精準還原「同一餐再用一個獨立外框呈現」 */
     function renderCalendar() {
       const year = calendarCurrentDate.getFullYear();
       const month = calendarCurrentDate.getMonth();
@@ -920,7 +923,11 @@
               }
             }).join('');
 
-            return `<div class="space-y-0.5 w-full mb-2 last:mb-0">${chipsHtml}</div>`;
+            // 同一餐的所有食物，用獨立白色圓角外框 (.calendar-meal-group) 緊密包覆起來！
+            return `
+              <div class="calendar-meal-group space-y-0.5 mb-1.5 last:mb-0">
+                ${chipsHtml}
+              </div>`;
           }).join('');
         } else {
           mealsGroupsHtml = `<div class="text-slate-300 text-xs font-black leading-none mt-1">·</div>`;
@@ -1029,7 +1036,6 @@
       document.getElementById('nutriVitC').innerText = (totalWeight * 0.28).toFixed(1);
     }
 
-    /* 食材庫渲染：搜尋關鍵字時，一律跨全部分類全域搜尋 */
     function renderLibrary() {
       const grid = document.getElementById('libraryGrid');
       const notFoundContainer = document.getElementById('libraryNotFoundContainer');
@@ -1433,7 +1439,7 @@
       container.innerHTML = selectedMealItems.map((item, index) => {
         if (item.type === 'combo') {
           return `
-            <div class="bg-amber-50/90 border border-amber-200 rounded-xl p-2 flex items-center justify-between text-xs shadow-2xs">
+            <div class="bg-amber-50/80 border border-amber-200 rounded-lg p-2 flex items-center justify-between text-xs shadow-2xs">
               <div>
                 <span class="font-extrabold text-amber-950">🍱 ${escapeHtml(item.name)}</span>
                 <span class="text-[10px] text-amber-700 ml-1">(${(item.ingredients || []).join('、')})</span>
@@ -1443,14 +1449,14 @@
         } else {
           const currentStatus = appData.foodStatus[item.name] || 'normal';
           return `
-            <div class="bg-white border border-slate-200 rounded-xl p-2 space-y-1 text-xs shadow-2xs">
+            <div class="bg-white border border-slate-200 rounded-lg p-1.5 space-y-1 text-xs shadow-2xs">
               <div class="flex items-center justify-between">
                 <span class="font-bold text-xs text-slate-800">${escapeHtml(item.name)}</span>
                 <button type="button" onclick="removeSelectedItem(${index})" class="text-slate-400 hover:text-rose-600 font-bold px-1">✕</button>
               </div>
               <div class="flex items-center gap-0.5 pt-0.5 border-t border-slate-100 text-[10px]">
                 <span class="text-slate-500 font-medium">試敏:</span>
-                <button type="button" onclick="setFoodStatus('${escapeHtml(item.name)}', 'like')" class="px-1 py-0.2 rounded border ${currentStatus === 'like' ? 'bg-rose-100 border-rose-400 text-rose-800 font-bold' : 'bg-slate-50 text-slate-600'}">❤️ 喜歡</button>
+                <button type="button" onclick="setFoodStatus('${escapeHtml(item.name)}', 'like')" class="px-1 py-0.2 rounded border ${currentStatus === 'like' ? 'bg-rose-100 border-rose-400 text-rose-800 font-bold' : 'bg-slate-50 text-slate-600'}">❤️ 喜愛</button>
                 <button type="button" onclick="setFoodStatus('${escapeHtml(item.name)}', 'normal')" class="px-1 py-0.2 rounded border ${currentStatus === 'normal' ? 'bg-slate-200 border-slate-400 text-slate-800 font-bold' : 'bg-slate-50 text-slate-600'}">😐 普通</button>
                 <button type="button" onclick="setFoodStatus('${escapeHtml(item.name)}', 'dislike')" class="px-1 py-0.2 rounded border ${currentStatus === 'dislike' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 text-slate-600'}">🤢 討厭</button>
                 <button type="button" onclick="setFoodStatus('${escapeHtml(item.name)}', 'allergy')" class="px-1 py-0.2 rounded border ${currentStatus === 'allergy' ? 'bg-rose-600 text-black font-extrabold border border-rose-800' : 'bg-slate-50 text-rose-600 border-rose-200'}">❌ 過敏</button>

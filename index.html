@@ -298,6 +298,29 @@
     </div>
   </div>
 
+  <!-- 食物組合編輯彈窗 (新增) -->
+  <div id="comboEditModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-4 space-y-3 shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between border-b pb-2">
+        <h3 class="font-bold text-slate-800 text-sm">🍱 編輯食物組合</h3>
+        <button onclick="closeComboEditModal()" class="text-slate-400 hover:text-slate-600 text-sm">✕</button>
+      </div>
+      <input type="hidden" id="editingComboId" value="">
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">組合名稱</label>
+        <input type="text" id="editingComboName" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs bg-slate-50 focus:bg-white focus:ring-1 focus:ring-emerald-500">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">包含食材 (點擊勾選或取消)</label>
+        <div id="editingComboFoodList" class="max-h-48 overflow-y-auto custom-scrollbar border border-slate-200 rounded-xl p-2 flex flex-wrap gap-1 bg-slate-50"></div>
+      </div>
+      <div class="flex items-center gap-2 pt-2 border-t border-slate-100">
+        <button type="button" onclick="closeComboEditModal()" class="flex-1 bg-slate-100 text-slate-600 py-2 rounded-xl font-bold hover:bg-slate-200 text-xs">取消</button>
+        <button type="button" onclick="saveComboEdit()" class="flex-1 bg-emerald-600 text-white py-2 rounded-xl font-bold hover:bg-emerald-700 text-xs shadow-xs">儲存組合</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 餐點彈窗 Modal -->
   <div id="mealModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-2.5 hidden">
     <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[95vh] overflow-y-auto custom-scrollbar shadow-2xl border border-slate-100">
@@ -352,7 +375,7 @@
           <div class="relative flex items-center gap-1 mb-1.5">
             <div class="relative flex-1">
               <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2 text-slate-400 text-[10px]"></i>
-              <input type="text" id="pickerSearchInput" oninput="renderPickerChips()" placeholder="🔍 搜尋食材（自動搜尋全部類別）..." class="w-full pl-7 pr-2.5 py-1 border border-slate-300 rounded-lg text-xs bg-slate-50 focus:bg-white focus:ring-1 focus:ring-emerald-500">
+              <input type="text" id="pickerSearchInput" oninput="renderPickerChips()" placeholder="🔍 搜尋食材（自動搜尋全部類別）..." class="w-full pl-7 pr-2.5 py-1 border border-slate-300 rounded-lg text-xs bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500">
             </div>
             <button type="button" onclick="startVoiceRecognition('pickerSearchInput', renderPickerChips)" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 p-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1" title="語音搜尋食材">
               🎤 語音
@@ -493,6 +516,7 @@
     let activeLibraryCategory = 'all';
     let calendarCurrentDate = new Date();
     let analysisWeekOffset = 0;
+    let editingComboSelectedFoods = []; // 供修改食物組合時暫存
 
     window.onload = function() {
       loadLocalData();
@@ -823,7 +847,6 @@
           }
         }).join('');
 
-        // 食用狀況徽章色彩樣式
         const finish = meal.finishStatus || '全部吃完';
         let finishBadgeClass = 'bg-emerald-100 text-emerald-800 border-emerald-300';
         if (finish === '吃大半') finishBadgeClass = 'bg-teal-100 text-teal-800 border-teal-300';
@@ -1264,6 +1287,80 @@
       }
     }
 
+    /* 食物組合編輯邏輯 (修改名稱與配方) */
+    function openComboEditModal(comboId) {
+      const combo = (appData.combos || []).find(c => c.id === comboId);
+      if (!combo) return;
+      document.getElementById('editingComboId').value = combo.id;
+      document.getElementById('editingComboName').value = combo.name;
+      editingComboSelectedFoods = [...combo.ingredients];
+      renderEditingComboFoodList();
+      document.getElementById('comboEditModal').classList.remove('hidden');
+    }
+
+    function closeComboEditModal() {
+      document.getElementById('comboEditModal').classList.add('hidden');
+    }
+
+    function renderEditingComboFoodList() {
+      const container = document.getElementById('editingComboFoodList');
+      container.innerHTML = appData.foods.map(food => {
+        const isChecked = editingComboSelectedFoods.includes(food.name);
+        return `
+          <button type="button" onclick="toggleEditingComboFood('${escapeHtml(food.name)}')" class="px-2 py-0.5 rounded-lg text-xs font-medium border flex items-center gap-1 ${isChecked ? 'bg-amber-500 text-white font-bold border-amber-600' : 'bg-white text-slate-700 hover:bg-slate-100 border-slate-200'}">
+            <span>${food.icon || '🥦'}</span>
+            <span>${escapeHtml(food.name)}</span>
+          </button>`;
+      }).join('');
+    }
+
+    function toggleEditingComboFood(foodName) {
+      const idx = editingComboSelectedFoods.indexOf(foodName);
+      if (idx >= 0) editingComboSelectedFoods.splice(idx, 1);
+      else editingComboSelectedFoods.push(foodName);
+      renderEditingComboFoodList();
+    }
+
+    function saveComboEdit() {
+      const comboId = document.getElementById('editingComboId').value;
+      const newName = document.getElementById('editingComboName').value.trim();
+      if (!newName) {
+        alert('組合名稱不能為空！');
+        return;
+      }
+      if (editingComboSelectedFoods.length === 0) {
+        alert('請至少選擇一種食材！');
+        return;
+      }
+
+      const combo = (appData.combos || []).find(c => c.id === comboId);
+      if (combo) {
+        const oldName = combo.name;
+        combo.name = newName;
+        combo.ingredients = [...editingComboSelectedFoods];
+
+        // 同步連動更新餐點紀錄中已被使用的此組合名稱
+        if (oldName !== newName) {
+          appData.meals.forEach(meal => {
+            if (meal.comboName === oldName) meal.comboName = newName;
+            (meal.items || []).forEach(it => {
+              if (it.type === 'combo' && it.name === oldName) {
+                it.name = newName;
+                it.ingredients = [...combo.ingredients];
+              }
+            });
+          });
+        }
+
+        saveData();
+        closeComboEditModal();
+        renderPickerChips();
+        renderDailyCards();
+        renderCalendar();
+        alert(`已成功更新食物組合「${newName}」！`);
+      }
+    }
+
     function filterLibraryCategory(cat) {
       activeLibraryCategory = cat;
       document.getElementById('librarySearchInput').value = '';
@@ -1283,7 +1380,7 @@
         document.getElementById('mealWeight').value = mealToEdit.weight || '';
         document.getElementById('mealFinishStatus').value = mealToEdit.finishStatus || '全部吃完';
         document.getElementById('mealTexture').value = mealToEdit.texture || '十倍粥 / 米湯';
-        document.getElementById('mealNotes').value = mealToEdit.notes || '';
+        document.getElementById('mealNotes').value = mealNotes.value || '';
 
         if (mealToEdit.items && mealToEdit.items.length > 0) {
           selectedMealItems = JSON.parse(JSON.stringify(mealToEdit.items));
@@ -1347,6 +1444,7 @@
       renderPickerChips();
     }
 
+    /* 渲染挑選區：為食物組合增加 ✏️ 修改按鈕 */
     function renderPickerChips() {
       const container = document.getElementById('pickerChipsContainer');
       const searchKey = document.getElementById('pickerSearchInput').value.trim();
@@ -1360,6 +1458,7 @@
           html += `
             <div class="inline-flex items-center gap-1 bg-amber-50 border border-amber-300 rounded-lg px-2 py-1 text-xs mb-1">
               <button type="button" onclick="addComboToMeal('${c.id}')" class="font-bold text-amber-900 hover:underline">🍱 ${escapeHtml(c.name)} (${c.ingredients.join('、')})</button>
+              <button type="button" onclick="openComboEditModal('${c.id}')" class="text-slate-400 hover:text-slate-700 ml-1 text-[11px]" title="修改組合">✏️</button>
             </div>`;
         });
 
@@ -1378,7 +1477,8 @@
           html = comboList.map(c => `
             <div class="inline-flex items-center gap-1 bg-amber-50 border border-amber-300 rounded-lg px-2 py-1 text-xs">
               <button type="button" onclick="addComboToMeal('${c.id}')" class="font-bold text-amber-900 hover:underline">🍱 ${escapeHtml(c.name)} (${c.ingredients.join('、')})</button>
-              <button type="button" onclick="deleteCombo('${c.id}')" class="text-slate-400 hover:text-rose-600 ml-1 text-[10px]" title="刪除組合">✕</button>
+              <button type="button" onclick="openComboEditModal('${c.id}')" class="text-slate-400 hover:text-slate-700 ml-1 text-[11px]" title="修改組合">✏️</button>
+              <button type="button" onclick="deleteCombo('${c.id}')" class="text-slate-400 hover:text-rose-600 ml-0.5 text-[10px]" title="刪除組合">✕</button>
             </div>
           `).join('');
 
@@ -1468,7 +1568,7 @@
       container.innerHTML = selectedMealItems.map((item, index) => {
         if (item.type === 'combo') {
           return `
-            <div class="bg-amber-50/80 border border-amber-200 rounded-lg p-2 flex items-center justify-between text-xs shadow-2xs">
+            <div class="bg-amber-50/90 border border-amber-200 rounded-xl p-2 flex items-center justify-between text-xs shadow-2xs">
               <div>
                 <span class="font-extrabold text-amber-950">🍱 ${escapeHtml(item.name)}</span>
                 <span class="text-[10px] text-amber-700 ml-1">(${(item.ingredients || []).join('、')})</span>
@@ -1478,7 +1578,7 @@
         } else {
           const currentStatus = appData.foodStatus[item.name] || 'normal';
           return `
-            <div class="bg-white border border-slate-200 rounded-lg p-1.5 space-y-1 text-xs shadow-2xs">
+            <div class="bg-white border border-slate-200 rounded-xl p-2 space-y-1 text-xs shadow-2xs">
               <div class="flex items-center justify-between">
                 <span class="font-bold text-xs text-slate-800 break-words">${escapeHtml(item.name)}</span>
                 <button type="button" onclick="removeSelectedItem(${index})" class="text-slate-400 hover:text-rose-600 font-bold px-1">✕</button>

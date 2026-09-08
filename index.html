@@ -298,7 +298,7 @@
     </div>
   </div>
 
-  <!-- 食物組合編輯彈窗 (新增) -->
+  <!-- 食物組合編輯彈窗 -->
   <div id="comboEditModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-4 space-y-3 shadow-2xl border border-slate-100">
       <div class="flex items-center justify-between border-b pb-2">
@@ -449,6 +449,7 @@
       { name: '芋頭', category: '穀物澱粉', icon: '🍠' },
       { name: '山藥', category: '穀物澱粉', icon: '🍠' },
       { name: '玉米', category: '穀物澱粉', icon: '🌽' },
+      { name: '玉米粒', category: '穀物澱粉', icon: '🌽' },
       { name: '蓮實/蓮子', category: '穀物澱粉', icon: '⚪' },
       { name: '栗子', category: '穀物澱粉', icon: '🌰' },
       { name: '高麗菜', category: '蔬菜菌菇', icon: '🥬' },
@@ -503,7 +504,8 @@
       { name: '蝦仁', category: '蛋豆魚肉乳', icon: '🦐' },
       { name: '黑芝麻粉', category: '海藻其他', icon: '🖤' },
       { name: '橄欖油', category: '海藻其他', icon: '🫒' },
-      { name: '高湯', category: '海藻其他', icon: '🍲' }
+      { name: '高湯', category: '海藻其他', icon: '🍲' },
+      { name: '高湯/雞湯', category: '海藻其他', icon: '🍲' }
     ];
 
     const DEFAULT_COMBOS = [
@@ -516,7 +518,7 @@
     let activeLibraryCategory = 'all';
     let calendarCurrentDate = new Date();
     let analysisWeekOffset = 0;
-    let editingComboSelectedFoods = []; // 供修改食物組合時暫存
+    let editingComboSelectedFoods = [];
 
     window.onload = function() {
       loadLocalData();
@@ -623,19 +625,43 @@
       };
     }
 
+    /* 從每餐紀錄精準提取不重複的食材清單 (防止組合雙重計算) */
+    function extractMealUniqueIngredients(meal) {
+      const set = new Set();
+      if (meal.items && meal.items.length > 0) {
+        meal.items.forEach(it => {
+          if (it.type === 'combo') {
+            (it.ingredients || []).forEach(sub => { if (sub) set.add(sub); });
+          } else if (it.name) {
+            set.add(it.name);
+          }
+        });
+      } else if (meal.comboName) {
+        const matchedCombo = (appData.combos || []).find(c => c.name === meal.comboName);
+        if (matchedCombo && matchedCombo.ingredients) {
+          matchedCombo.ingredients.forEach(sub => set.add(sub));
+        }
+        (meal.ingredients || []).forEach(i => {
+          const n = typeof i === 'string' ? i : i.name;
+          if (n) set.add(n);
+        });
+      } else if (meal.ingredients) {
+        meal.ingredients.forEach(i => {
+          const n = typeof i === 'string' ? i : i.name;
+          if (n) set.add(n);
+        });
+      }
+      return Array.from(set);
+    }
+
+    /* 最早進食日期 (嚴格單餐去重，歷史排序) */
     function getEarliestDateMap() {
       const map = {};
       const sortedMeals = [...appData.meals].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
       sortedMeals.forEach(m => {
-        const allIngs = [];
-        (m.items || []).forEach(it => {
-          if (it.type === 'combo') (it.ingredients || []).forEach(sub => allIngs.push(sub));
-          else allIngs.push(it.name);
-        });
-        (m.ingredients || []).forEach(i => allIngs.push(typeof i === 'string' ? i : i.name));
-
-        allIngs.forEach(ingName => {
-          if (ingName && !map[ingName]) {
+        const ings = extractMealUniqueIngredients(m);
+        ings.forEach(ingName => {
+          if (!map[ingName]) {
             map[ingName] = m.date;
           }
         });
@@ -643,18 +669,13 @@
       return map;
     }
 
+    /* 正確計算食材食用次數 (每一餐無論重複吃幾次只計 1 次，徹底根除多算 Bug) */
     function getIngredientCountMap() {
       const countMap = {};
       appData.meals.forEach(m => {
-        const allIngs = [];
-        (m.items || []).forEach(it => {
-          if (it.type === 'combo') (it.ingredients || []).forEach(sub => allIngs.push(sub));
-          else allIngs.push(it.name);
-        });
-        (m.ingredients || []).forEach(i => allIngs.push(typeof i === 'string' ? i : i.name));
-
-        allIngs.forEach(ingName => {
-          if (ingName) countMap[ingName] = (countMap[ingName] || 0) + 1;
+        const ings = extractMealUniqueIngredients(m);
+        ings.forEach(ingName => {
+          countMap[ingName] = (countMap[ingName] || 0) + 1;
         });
       });
       return countMap;
@@ -742,7 +763,7 @@
       return `${ampm} ${hour}:${m}`;
     }
 
-    /* 按日視圖渲染：標示食用狀況（全部吃完/吃大半等） */
+    /* 按日視圖渲染 */
     function renderDailyCards() {
       const container = document.getElementById('dailyCardsContainer');
       const targetDate = document.getElementById('dailyDateFilter').value;
@@ -1032,12 +1053,7 @@
 
       weekMeals.forEach(m => {
         const w = parseFloat(m.weight) || 50;
-        const allIngs = [];
-        (m.items || []).forEach(it => {
-          if (it.type === 'combo') (it.ingredients || []).forEach(sub => allIngs.push(sub));
-          else allIngs.push(it.name);
-        });
-        (m.ingredients || []).forEach(i => allIngs.push(typeof i === 'string' ? i : i.name));
+        const allIngs = extractMealUniqueIngredients(m);
 
         if (allIngs.length > 0) {
           const portion = w / allIngs.length;
@@ -1287,7 +1303,6 @@
       }
     }
 
-    /* 食物組合編輯邏輯 (修改名稱與配方) */
     function openComboEditModal(comboId) {
       const combo = (appData.combos || []).find(c => c.id === comboId);
       if (!combo) return;
@@ -1339,7 +1354,6 @@
         combo.name = newName;
         combo.ingredients = [...editingComboSelectedFoods];
 
-        // 同步連動更新餐點紀錄中已被使用的此組合名稱
         if (oldName !== newName) {
           appData.meals.forEach(meal => {
             if (meal.comboName === oldName) meal.comboName = newName;
@@ -1380,7 +1394,7 @@
         document.getElementById('mealWeight').value = mealToEdit.weight || '';
         document.getElementById('mealFinishStatus').value = mealToEdit.finishStatus || '全部吃完';
         document.getElementById('mealTexture').value = mealToEdit.texture || '十倍粥 / 米湯';
-        document.getElementById('mealNotes').value = mealNotes.value || '';
+        document.getElementById('mealNotes').value = mealToEdit.notes || '';
 
         if (mealToEdit.items && mealToEdit.items.length > 0) {
           selectedMealItems = JSON.parse(JSON.stringify(mealToEdit.items));
@@ -1444,7 +1458,6 @@
       renderPickerChips();
     }
 
-    /* 渲染挑選區：為食物組合增加 ✏️ 修改按鈕 */
     function renderPickerChips() {
       const container = document.getElementById('pickerChipsContainer');
       const searchKey = document.getElementById('pickerSearchInput').value.trim();
@@ -1580,7 +1593,7 @@
           return `
             <div class="bg-white border border-slate-200 rounded-xl p-2 space-y-1 text-xs shadow-2xs">
               <div class="flex items-center justify-between">
-                <span class="font-bold text-xs text-slate-800 break-words">${escapeHtml(item.name)}</span>
+                <span class="font-bold text-xs text-slate-800">${escapeHtml(item.name)}</span>
                 <button type="button" onclick="removeSelectedItem(${index})" class="text-slate-400 hover:text-rose-600 font-bold px-1">✕</button>
               </div>
               <div class="flex items-center gap-0.5 pt-0.5 border-t border-slate-100 text-[10px]">

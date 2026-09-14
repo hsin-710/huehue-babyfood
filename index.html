@@ -333,7 +333,7 @@
       <form id="mealForm" onsubmit="handleMealSubmit(event)" class="p-3.5 sm:p-5 space-y-3">
         <input type="hidden" id="editingMealId" value="">
 
-        <!-- 時間與基本資訊 (加入食用狀況) -->
+        <!-- 時間與基本資訊 -->
         <div class="grid grid-cols-2 md:grid-cols-5 gap-2 bg-slate-50 p-2.5 rounded-2xl border border-slate-200/80">
           <div>
             <label class="block text-[11px] font-bold text-emerald-800 mb-0.5">⏰ 食用時間</label>
@@ -395,13 +395,13 @@
           <div id="pickerChipsContainer" class="flex flex-wrap gap-1 p-2 bg-slate-50 rounded-xl border border-slate-200 max-h-32 overflow-y-auto custom-scrollbar"></div>
         </div>
 
-        <!-- 已選擇的項目 -->
+        <!-- 已選擇的項目（支援勾選其中幾項獨立打包為組合） -->
         <div class="bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100 space-y-1.5">
           <div class="text-[11px] font-bold text-emerald-900 flex items-center justify-between">
             <span>已選擇食用內容：</span>
             <div class="flex items-center gap-2">
               <span id="selectedIngredientsCount" class="text-emerald-700 font-semibold">0 項</span>
-              <button type="button" onclick="saveCurrentAsCombo()" class="text-[10px] bg-amber-500 hover:bg-amber-600 text-white font-bold px-2 py-0.5 rounded-md shadow-2xs">💾 將已選食材打包為新組合</button>
+              <button type="button" onclick="saveSelectedSubsetAsCombo()" class="text-[10px] bg-amber-500 hover:bg-amber-600 text-white font-bold px-2 py-0.5 rounded-md shadow-2xs">💾 將勾選食材打包為新組合</button>
             </div>
           </div>
           <div id="selectedIngredientsList" class="space-y-1.5 min-h-[20px]"></div>
@@ -513,6 +513,7 @@
     ];
 
     let appData = { syncCode: 'huehue', meals: [], foods: DEFAULT_FOOD_DATABASE, combos: DEFAULT_COMBOS, foodStatus: {} };
+    // selectedMealItems 支援 { type: 'food', name: '白米', checked: true } 或 { type: 'combo', name: '豬肉粥', ingredients: [...] }
     let selectedMealItems = [];
     let activePickerCategory = 'combo';
     let activeLibraryCategory = 'all';
@@ -625,7 +626,6 @@
       };
     }
 
-    /* 從每餐紀錄精準提取不重複的食材清單 (防止組合雙重計算) */
     function extractMealUniqueIngredients(meal) {
       const set = new Set();
       if (meal.items && meal.items.length > 0) {
@@ -654,7 +654,6 @@
       return Array.from(set);
     }
 
-    /* 最早進食日期 (嚴格單餐去重，歷史排序) */
     function getEarliestDateMap() {
       const map = {};
       const sortedMeals = [...appData.meals].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
@@ -669,7 +668,6 @@
       return map;
     }
 
-    /* 正確計算食材食用次數 (每一餐無論重複吃幾次只計 1 次，徹底根除多算 Bug) */
     function getIngredientCountMap() {
       const countMap = {};
       appData.meals.forEach(m => {
@@ -1394,10 +1392,13 @@
         document.getElementById('mealWeight').value = mealToEdit.weight || '';
         document.getElementById('mealFinishStatus').value = mealToEdit.finishStatus || '全部吃完';
         document.getElementById('mealTexture').value = mealToEdit.texture || '十倍粥 / 米湯';
-        document.getElementById('mealNotes').value = mealToEdit.notes || '';
+        document.getElementById('mealNotes').value = mealNotes.value || '';
 
         if (mealToEdit.items && mealToEdit.items.length > 0) {
-          selectedMealItems = JSON.parse(JSON.stringify(mealToEdit.items));
+          selectedMealItems = JSON.parse(JSON.stringify(mealToEdit.items)).map(it => {
+            if (it.type === 'food' && it.checked === undefined) it.checked = true;
+            return it;
+          });
         } else if (mealToEdit.comboName) {
           const matchedCombo = (appData.combos || []).find(c => c.name === mealToEdit.comboName);
           const comboOriginalIngs = matchedCombo ? matchedCombo.ingredients : [];
@@ -1409,13 +1410,14 @@
           (mealToEdit.ingredients || []).forEach(i => {
             const ingName = typeof i === 'string' ? i : i.name;
             if (!comboOriginalIngs.includes(ingName)) {
-              selectedMealItems.push({ type: 'food', name: ingName });
+              selectedMealItems.push({ type: 'food', name: ingName, checked: true });
             }
           });
         } else {
           selectedMealItems = (mealToEdit.ingredients || []).map(item => ({
             type: 'food',
-            name: typeof item === 'string' ? item : item.name
+            name: typeof item === 'string' ? item : item.name,
+            checked: true
           }));
         }
       } else {
@@ -1495,7 +1497,7 @@
             </div>
           `).join('');
 
-          if (!html) html = `<div class="text-xs text-slate-400 p-1">尚無食物組合，可在下方選擇食材後點擊「💾 將已選食材打包為新組合」建立！</div>`;
+          if (!html) html = `<div class="text-xs text-slate-400 p-1">尚無食物組合，可在下方選擇食材後點擊「💾 將勾選食材打包為新組合」建立！</div>`;
         } else {
           let filtered = appData.foods;
           if (activePickerCategory !== 'all') filtered = filtered.filter(f => f.category === activePickerCategory);
@@ -1526,25 +1528,49 @@
       }
     }
 
-    function saveCurrentAsCombo() {
-      const foodOnly = selectedMealItems.filter(it => it.type === 'food').map(it => it.name);
-      if (foodOnly.length === 0) {
-        alert('請先在下方挑選幾種獨立食材，才能打包為組合！');
+    /* 將「有勾選」的食材打包為新食物組合 */
+    function saveSelectedSubsetAsCombo() {
+      const checkedFoods = selectedMealItems
+        .filter(it => it.type === 'food' && it.checked !== false)
+        .map(it => it.name);
+
+      if (checkedFoods.length < 2) {
+        alert('請至少勾選 2 種食材，才能打包為食物組合！');
         return;
       }
-      const comboName = prompt('請輸入食物組合名稱（例如：豬肉粥、蘋果優格）：');
+
+      const comboName = prompt(`即將將【${checkedFoods.join('、')}】打包為新組合。\n請輸入食物組合名稱（例如：南瓜雞肉粥）：`);
       if (comboName && comboName.trim()) {
+        const cleanName = comboName.trim();
         if (!appData.combos) appData.combos = [];
-        appData.combos.push({
+        
+        // 檢查是否重名
+        if (appData.combos.some(c => c.name === cleanName)) {
+          alert('已有同名的食物組合囉！請取一個不同的名稱。');
+          return;
+        }
+
+        const newCombo = {
           id: 'combo_' + Date.now(),
-          name: comboName.trim(),
-          ingredients: foodOnly
-        });
+          name: cleanName,
+          ingredients: checkedFoods
+        };
+        appData.combos.push(newCombo);
         saveData();
+
+        // 智慧替換：將這餐清單中已被打包的食材移除，直接替換成該全新組合卡片，沒被打包的食材保留
+        selectedMealItems = selectedMealItems.filter(it => !(it.type === 'food' && checkedFoods.includes(it.name)));
+        selectedMealItems.unshift({
+          type: 'combo',
+          name: newCombo.name,
+          ingredients: [...newCombo.ingredients]
+        });
+
         activePickerCategory = 'combo';
         document.getElementById('pickerSearchInput').value = '';
+        renderSelectedIngredientsList();
         renderPickerChips();
-        alert(`已成功建立「${comboName.trim()}」食物組合！`);
+        alert(`已成功建立「${cleanName}」，並已自動替換到當前餐點！`);
       }
     }
 
@@ -1561,11 +1587,18 @@
       if (idx >= 0) {
         selectedMealItems.splice(idx, 1);
       } else {
-        selectedMealItems.push({ type: 'food', name: name });
+        selectedMealItems.push({ type: 'food', name: name, checked: true });
       }
       document.getElementById('pickerSearchInput').value = '';
       renderSelectedIngredientsList();
       renderPickerChips();
+    }
+
+    function toggleIngredientCheckbox(index) {
+      if (selectedMealItems[index] && selectedMealItems[index].type === 'food') {
+        selectedMealItems[index].checked = !selectedMealItems[index].checked;
+        renderSelectedIngredientsList();
+      }
     }
 
     function removeSelectedItem(index) {
@@ -1574,6 +1607,7 @@
       renderPickerChips();
     }
 
+    /* 渲染已選食材列表（加入勾選框，方便自選打包） */
     function renderSelectedIngredientsList() {
       const container = document.getElementById('selectedIngredientsList');
       document.getElementById('selectedIngredientsCount').innerText = `${selectedMealItems.length} 項`;
@@ -1590,10 +1624,15 @@
             </div>`;
         } else {
           const currentStatus = appData.foodStatus[item.name] || 'normal';
+          const isChecked = item.checked !== false;
+
           return `
             <div class="bg-white border border-slate-200 rounded-xl p-2 space-y-1 text-xs shadow-2xs">
               <div class="flex items-center justify-between">
-                <span class="font-bold text-xs text-slate-800">${escapeHtml(item.name)}</span>
+                <label class="flex items-center gap-1.5 cursor-pointer select-none">
+                  <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleIngredientCheckbox(${index})" class="w-3.5 h-3.5 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300">
+                  <span class="font-bold text-xs text-slate-800 break-words">${escapeHtml(item.name)}</span>
+                </label>
                 <button type="button" onclick="removeSelectedItem(${index})" class="text-slate-400 hover:text-rose-600 font-bold px-1">✕</button>
               </div>
               <div class="flex items-center gap-0.5 pt-0.5 border-t border-slate-100 text-[10px]">

@@ -264,6 +264,34 @@
 
   </main>
 
+  <!-- 食用歷史紀錄彈窗 (全新新增) -->
+  <div id="foodHistoryModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-4 space-y-3 shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between border-b pb-2">
+        <div class="flex items-center gap-2">
+          <span id="foodHistoryIcon" class="text-xl">🥦</span>
+          <div>
+            <h3 id="foodHistoryTitle" class="font-black text-slate-800 text-sm">食材食用歷史</h3>
+            <p id="foodHistorySubtitle" class="text-[10px] text-slate-400">總共吃過 0 次</p>
+          </div>
+        </div>
+        <button onclick="closeFoodHistoryModal()" class="text-slate-400 hover:text-slate-600 text-sm">✕</button>
+      </div>
+
+      <div class="space-y-1.5">
+        <div class="text-[11px] font-bold text-slate-500 flex items-center justify-between">
+          <span>📅 吃過的日期清單</span>
+          <span class="text-[10px] text-emerald-600 font-normal">點擊日期可跳至當天日誌</span>
+        </div>
+        <div id="foodHistoryDateList" class="max-h-56 overflow-y-auto custom-scrollbar border border-slate-100 rounded-xl p-2 space-y-1 bg-slate-50"></div>
+      </div>
+
+      <div class="pt-2 border-t border-slate-100">
+        <button type="button" onclick="closeFoodHistoryModal()" class="w-full bg-slate-100 text-slate-600 py-2 rounded-xl font-bold hover:bg-slate-200 text-xs">關閉</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 食材修改/刪除彈窗 -->
   <div id="foodEditModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-4 space-y-3 shadow-2xl border border-slate-100">
@@ -395,13 +423,13 @@
           <div id="pickerChipsContainer" class="flex flex-wrap gap-1 p-2 bg-slate-50 rounded-xl border border-slate-200 max-h-32 overflow-y-auto custom-scrollbar"></div>
         </div>
 
-        <!-- 已選擇的項目（支援勾選其中幾項獨立打包為組合） -->
+        <!-- 已選擇的項目 -->
         <div class="bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100 space-y-1.5">
           <div class="text-[11px] font-bold text-emerald-900 flex items-center justify-between">
             <span>已選擇食用內容：</span>
             <div class="flex items-center gap-2">
               <span id="selectedIngredientsCount" class="text-emerald-700 font-semibold">0 項</span>
-              <button type="button" onclick="saveSelectedSubsetAsCombo()" class="text-[10px] bg-amber-500 hover:bg-amber-600 text-white font-bold px-2 py-0.5 rounded-md shadow-2xs">💾 將勾選食材打包為新組合</button>
+              <button type="button" onclick="saveSelectedSubsetAsCombo()" class="text-[10px] bg-amber-500 hover:bg-amber-600 text-white font-bold px-2 py-0.5 rounded-md shadow-2xs">💾 將勾選內容打包為新組合</button>
             </div>
           </div>
           <div id="selectedIngredientsList" class="space-y-1.5 min-h-[20px]"></div>
@@ -513,7 +541,6 @@
     ];
 
     let appData = { syncCode: 'huehue', meals: [], foods: DEFAULT_FOOD_DATABASE, combos: DEFAULT_COMBOS, foodStatus: {} };
-    // selectedMealItems 支援 { type: 'food', name: '白米', checked: true } 或 { type: 'combo', name: '豬肉粥', ingredients: [...] }
     let selectedMealItems = [];
     let activePickerCategory = 'combo';
     let activeLibraryCategory = 'all';
@@ -677,6 +704,58 @@
         });
       });
       return countMap;
+    }
+
+    /* 取得特定食材在哪些日期吃過 (升冪排序並去重) */
+    function getIngredientEatenDates(foodName) {
+      const datesSet = new Set();
+      appData.meals.forEach(m => {
+        const ings = extractMealUniqueIngredients(m);
+        if (ings.includes(foodName)) {
+          datesSet.add(m.date);
+        }
+      });
+      return Array.from(datesSet).sort();
+    }
+
+    /* 開啟食用歷史清單彈窗 */
+    function showFoodHistory(foodName) {
+      const foodObj = appData.foods.find(f => f.name === foodName) || {};
+      const dates = getIngredientEatenDates(foodName);
+      const earliestDate = dates[0] || '無紀錄';
+
+      document.getElementById('foodHistoryIcon').innerText = foodObj.icon || '🥦';
+      document.getElementById('foodHistoryTitle').innerText = `${foodName} - 食用歷史`;
+      document.getElementById('foodHistorySubtitle').innerText = `總共吃過 ${dates.length} 次 ‧ 首次嘗試：${earliestDate}`;
+
+      const listContainer = document.getElementById('foodHistoryDateList');
+      if (dates.length === 0) {
+        listContainer.innerHTML = `<div class="text-xs text-slate-400 p-2 text-center">尚無食用紀錄</div>`;
+      } else {
+        listContainer.innerHTML = dates.slice().reverse().map((dateStr, idx) => {
+          const isFirst = (dateStr === earliestDate);
+          return `
+            <div onclick="jumpToDateFromHistory('${dateStr}')" class="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-slate-200/80 hover:border-emerald-400 hover:bg-emerald-50/30 cursor-pointer transition-all shadow-2xs">
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs font-bold text-slate-700 font-mono">${dateStr}</span>
+                ${isFirst ? '<span class="bg-amber-400 text-slate-900 text-[9px] font-black px-1.5 py-0.2 rounded-md">首次嘗試 ✨</span>' : ''}
+              </div>
+              <span class="text-[10px] text-slate-400 font-medium">查看當日 ›</span>
+            </div>`;
+        }).join('');
+      }
+
+      document.getElementById('foodHistoryModal').classList.remove('hidden');
+    }
+
+    function closeFoodHistoryModal() {
+      document.getElementById('foodHistoryModal').classList.add('hidden');
+    }
+
+    function jumpToDateFromHistory(dateStr) {
+      closeFoodHistoryModal();
+      document.getElementById('dailyDateFilter').value = dateStr;
+      switchView('daily');
     }
 
     function initFirebaseListener() {
@@ -1100,6 +1179,7 @@
       document.getElementById('nutriVitC').innerText = (totalWeight * 0.28).toFixed(1);
     }
 
+    /* 渲染食材庫：點擊食材次數即可查看食用歷史日期清單 */
     function renderLibrary() {
       const grid = document.getElementById('libraryGrid');
       const notFoundContainer = document.getElementById('libraryNotFoundContainer');
@@ -1161,14 +1241,16 @@
 
         return `
           <div class="bg-white rounded-xl p-2 border ${status === 'allergy' ? 'border-rose-400 bg-rose-50/30' : 'border-slate-200'} shadow-xs flex items-center justify-between">
-            <div class="flex items-center gap-1.5">
-              <span class="text-lg">${food.icon || '🥦'}</span>
-              <div>
+            <div class="flex items-center gap-1.5 flex-1 min-w-0 cursor-pointer" onclick="${count > 0 ? `showFoodHistory('${escapeHtml(food.name)}')` : ''}" title="${count > 0 ? '點擊查看吃過的日期' : ''}">
+              <span class="text-lg shrink-0">${food.icon || '🥦'}</span>
+              <div class="min-w-0">
                 <div class="font-bold text-xs text-slate-800 break-words">${escapeHtml(food.name)}</div>
-                <div class="text-[9px] ${count > 0 ? 'text-emerald-700 font-extrabold' : 'text-slate-400'}">${count > 0 ? `已吃 ${count} 次` : '未解鎖'}</div>
+                <div class="text-[9px] ${count > 0 ? 'text-emerald-700 font-extrabold hover:underline flex items-center gap-0.5' : 'text-slate-400'}">
+                  ${count > 0 ? `<span>已吃 ${count} 次</span><span class="text-[8px] bg-emerald-50 text-emerald-600 px-1 rounded border border-emerald-200">查歷史</span>` : '未解鎖'}
+                </div>
               </div>
             </div>
-            <div class="flex items-center gap-1">
+            <div class="flex items-center gap-1 shrink-0 ml-1">
               ${statusIcon ? `<span class="text-[9px] font-black px-1 py-0.2 rounded ${status === 'allergy' ? 'bg-rose-500 text-black border border-rose-700' : 'bg-slate-100 text-slate-700'}">${statusIcon}</span>` : ''}
               <button onclick="openFoodEditModal('${escapeHtml(food.name)}')" class="text-slate-400 hover:text-slate-600 p-1 text-[10px]" title="修改食材與分類">✏️</button>
             </div>
@@ -1396,7 +1478,7 @@
 
         if (mealToEdit.items && mealToEdit.items.length > 0) {
           selectedMealItems = JSON.parse(JSON.stringify(mealToEdit.items)).map(it => {
-            if (it.type === 'food' && it.checked === undefined) it.checked = true;
+            if (it.checked === undefined) it.checked = true;
             return it;
           });
         } else if (mealToEdit.comboName) {
@@ -1405,7 +1487,8 @@
           selectedMealItems = [{
             type: 'combo',
             name: mealToEdit.comboName,
-            ingredients: comboOriginalIngs.length > 0 ? comboOriginalIngs : (mealToEdit.ingredients || []).map(i => typeof i === 'string' ? i : i.name)
+            ingredients: comboOriginalIngs.length > 0 ? comboOriginalIngs : (mealToEdit.ingredients || []).map(i => typeof i === 'string' ? i : i.name),
+            checked: true
           }];
           (mealToEdit.ingredients || []).forEach(i => {
             const ingName = typeof i === 'string' ? i : i.name;
@@ -1497,7 +1580,7 @@
             </div>
           `).join('');
 
-          if (!html) html = `<div class="text-xs text-slate-400 p-1">尚無食物組合，可在下方選擇食材後點擊「💾 將勾選食材打包為新組合」建立！</div>`;
+          if (!html) html = `<div class="text-xs text-slate-400 p-1">尚無食物組合，可在下方選擇食材後點擊「💾 將勾選內容打包為新組合」建立！</div>`;
         } else {
           let filtered = appData.foods;
           if (activePickerCategory !== 'all') filtered = filtered.filter(f => f.category === activePickerCategory);
@@ -1519,7 +1602,8 @@
           selectedMealItems.push({
             type: 'combo',
             name: combo.name,
-            ingredients: [...combo.ingredients]
+            ingredients: [...combo.ingredients],
+            checked: true
           });
         }
         document.getElementById('pickerSearchInput').value = '';
@@ -1528,23 +1612,35 @@
       }
     }
 
-    /* 將「有勾選」的食材打包為新食物組合 */
     function saveSelectedSubsetAsCombo() {
-      const checkedFoods = selectedMealItems
-        .filter(it => it.type === 'food' && it.checked !== false)
-        .map(it => it.name);
+      const selectedThings = selectedMealItems.filter(it => it.checked !== false);
 
-      if (checkedFoods.length < 2) {
-        alert('請至少勾選 2 種食材，才能打包為食物組合！');
+      if (selectedThings.length === 0) {
+        alert('請先在下方勾選要打包的項目！');
         return;
       }
 
-      const comboName = prompt(`即將將【${checkedFoods.join('、')}】打包為新組合。\n請輸入食物組合名稱（例如：南瓜雞肉粥）：`);
+      const combinedIngredientsSet = new Set();
+      selectedThings.forEach(it => {
+        if (it.type === 'combo') {
+          (it.ingredients || []).forEach(sub => combinedIngredientsSet.add(sub));
+        } else {
+          combinedIngredientsSet.add(it.name);
+        }
+      });
+
+      const finalIngredients = Array.from(combinedIngredientsSet);
+
+      if (finalIngredients.length < 2) {
+        alert('合併後的食材至少需要 2 種以上才能打包為食物組合！');
+        return;
+      }
+
+      const comboName = prompt(`即將將【${finalIngredients.join('、')}】打包為新組合。\n請輸入食物組合名稱（例如：青花菜豬肉粥）：`);
       if (comboName && comboName.trim()) {
         const cleanName = comboName.trim();
         if (!appData.combos) appData.combos = [];
         
-        // 檢查是否重名
         if (appData.combos.some(c => c.name === cleanName)) {
           alert('已有同名的食物組合囉！請取一個不同的名稱。');
           return;
@@ -1553,17 +1649,17 @@
         const newCombo = {
           id: 'combo_' + Date.now(),
           name: cleanName,
-          ingredients: checkedFoods
+          ingredients: finalIngredients
         };
         appData.combos.push(newCombo);
         saveData();
 
-        // 智慧替換：將這餐清單中已被打包的食材移除，直接替換成該全新組合卡片，沒被打包的食材保留
-        selectedMealItems = selectedMealItems.filter(it => !(it.type === 'food' && checkedFoods.includes(it.name)));
+        selectedMealItems = selectedMealItems.filter(it => it.checked === false);
         selectedMealItems.unshift({
           type: 'combo',
           name: newCombo.name,
-          ingredients: [...newCombo.ingredients]
+          ingredients: [...newCombo.ingredients],
+          checked: true
         });
 
         activePickerCategory = 'combo';
@@ -1594,8 +1690,8 @@
       renderPickerChips();
     }
 
-    function toggleIngredientCheckbox(index) {
-      if (selectedMealItems[index] && selectedMealItems[index].type === 'food') {
+    function toggleItemCheckbox(index) {
+      if (selectedMealItems[index]) {
         selectedMealItems[index].checked = !selectedMealItems[index].checked;
         renderSelectedIngredientsList();
       }
@@ -1607,33 +1703,36 @@
       renderPickerChips();
     }
 
-    /* 渲染已選食材列表（加入勾選框，方便自選打包） */
     function renderSelectedIngredientsList() {
       const container = document.getElementById('selectedIngredientsList');
       document.getElementById('selectedIngredientsCount').innerText = `${selectedMealItems.length} 項`;
 
       container.innerHTML = selectedMealItems.map((item, index) => {
+        const isChecked = item.checked !== false;
+
         if (item.type === 'combo') {
           return `
             <div class="bg-amber-50/90 border border-amber-200 rounded-xl p-2 flex items-center justify-between text-xs shadow-2xs">
-              <div>
-                <span class="font-extrabold text-amber-950">🍱 ${escapeHtml(item.name)}</span>
-                <span class="text-[10px] text-amber-700 ml-1">(${(item.ingredients || []).join('、')})</span>
-              </div>
-              <button type="button" onclick="removeSelectedItem(${index})" class="text-slate-400 hover:text-rose-600 font-bold px-1.5 py-0.5">✕ 移除</button>
+              <label class="flex items-center gap-1.5 cursor-pointer select-none flex-1 min-w-0 pr-1">
+                <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleItemCheckbox(${index})" class="w-3.5 h-3.5 rounded text-amber-600 focus:ring-amber-500 border-amber-300">
+                <div class="truncate">
+                  <span class="font-extrabold text-amber-950">🍱 ${escapeHtml(item.name)}</span>
+                  <span class="text-[10px] text-amber-700 ml-1">(${(item.ingredients || []).join('、')})</span>
+                </div>
+              </label>
+              <button type="button" onclick="removeSelectedItem(${index})" class="text-slate-400 hover:text-rose-600 font-bold px-1.5 py-0.5 shrink-0">✕ 移除</button>
             </div>`;
         } else {
           const currentStatus = appData.foodStatus[item.name] || 'normal';
-          const isChecked = item.checked !== false;
 
           return `
             <div class="bg-white border border-slate-200 rounded-xl p-2 space-y-1 text-xs shadow-2xs">
               <div class="flex items-center justify-between">
-                <label class="flex items-center gap-1.5 cursor-pointer select-none">
-                  <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleIngredientCheckbox(${index})" class="w-3.5 h-3.5 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300">
+                <label class="flex items-center gap-1.5 cursor-pointer select-none flex-1 min-w-0 pr-1">
+                  <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleItemCheckbox(${index})" class="w-3.5 h-3.5 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300">
                   <span class="font-bold text-xs text-slate-800 break-words">${escapeHtml(item.name)}</span>
                 </label>
-                <button type="button" onclick="removeSelectedItem(${index})" class="text-slate-400 hover:text-rose-600 font-bold px-1">✕</button>
+                <button type="button" onclick="removeSelectedItem(${index})" class="text-slate-400 hover:text-rose-600 font-bold px-1 shrink-0">✕</button>
               </div>
               <div class="flex items-center gap-0.5 pt-0.5 border-t border-slate-100 text-[10px]">
                 <span class="text-slate-500 font-medium">試敏:</span>
